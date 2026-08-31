@@ -18,3 +18,15 @@ Route::post('/books', [BookController::class, 'store'])
 
 Route::get('/books/{book}', [BookController::class, 'show'])
     ->name('books.show');
+
+Route::get('/books/{book}/edit', [BookController::class, 'edit'])
+    ->middleware('auth')
+    ->name('books.edit');
+
+Route::put('/books/{book}', [BookController::class, 'update'])
+    ->middleware('auth')
+    ->name('books.update');
+
+Route::delete('/books/{book}', [BookController::class, 'destroy'])
+    ->middleware('auth')
+    ->name('books.destroy');

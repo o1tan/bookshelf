@@ -10,6 +10,29 @@
         <a href="{{ route('books.index') }}">← 書籍一覧へ戻る</a>
     </p>
 
+    @can('update', $book)
+        <p>
+            <a href="{{ route('books.edit', $book) }}">この書籍を編集する</a>
+        </p>
+    @endcan
+
+    @can('delete', $book)
+        <form
+            method="POST"
+            action="{{ route('books.destroy', $book) }}"
+            onsubmit="return confirm('本当にこの書籍を削除しますか？');"
+        >
+            @csrf
+            @method('DELETE')
+
+            <button type="submit">この書籍を削除する</button>
+        </form>
+    @endcan
+
+    @if (session('success'))
+        <p>{{ session('success') }}</p>
+    @endif
+
     <h1>{{ $book->title }}</h1>
 
     <p>著者：{{ $book->author }}</p>

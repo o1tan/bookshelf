@@ -6,6 +6,10 @@
     <title>書籍一覧 | BookShelf</title>
 </head>
 <body>
+    @if (session('success'))
+        <p>{{ session('success') }}</p>
+    @endif
+    
     <h1>BookShelf</h1>
     <h2>書籍一覧</h2>
 

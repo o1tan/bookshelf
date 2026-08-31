@@ -3,8 +3,9 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class StoreBookRequest extends FormRequest
+class UpdateBookRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -16,7 +17,14 @@ class StoreBookRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'author' => ['required', 'string', 'max:255'],
-            'isbn' => ['required', 'digits:13', 'unique:books,isbn'],
+
+            'isbn' => [
+                'required',
+                'digits:13',
+                Rule::unique('books', 'isbn')
+                    ->ignore($this->route('book')),
+            ],
+
             'published_date' => ['required', 'date'],
             'description' => ['nullable', 'string', 'max:5000'],
             'image_url' => ['nullable', 'url', 'max:2048'],
@@ -46,5 +54,30 @@ class StoreBookRequest extends FormRequest
             'genres.*.distinct' => '同じジャンルを重複して選択することはできません。',
             'genres.*.exists' => '選択されたジャンルが存在しません。',
         ];
+    }
+
+    public function edit(Book $book)
+    {
+        $genres = Genre::orderBy('name')->get();
+
+        $book->load('genres');
+
+        return view('books.edit', compact('book', 'genres'));
+    }
+
+    public function update(UpdateBookRequest $request, Book $book)
+    {
+        $validated = $request->validated();
+
+        $genreIds = $validated['genres'];
+        unset($validated['genres']);
+
+        $book->update($validated);
+
+        $book->genres()->sync($genreIds);
+
+        return redirect()
+            ->route('books.show', $book)
+            ->with('success', '書籍を更新しました。');
     }
 }
