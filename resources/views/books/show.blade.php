@@ -6,13 +6,16 @@
     <title>{{ $book->title }} | BookShelf</title>
 </head>
 <body>
+
     <p>
         <a href="{{ route('books.index') }}">← 書籍一覧へ戻る</a>
     </p>
 
     @can('update', $book)
         <p>
-            <a href="{{ route('books.edit', $book) }}">この書籍を編集する</a>
+            <a href="{{ route('books.edit', $book) }}">
+                この書籍を編集する
+            </a>
         </p>
     @endcan
 
@@ -25,7 +28,9 @@
             @csrf
             @method('DELETE')
 
-            <button type="submit">この書籍を削除する</button>
+            <button type="submit">
+                この書籍を削除する
+            </button>
         </form>
     @endcan
 
@@ -35,9 +40,13 @@
 
     <h1>{{ $book->title }}</h1>
 
-    <p>著者：{{ $book->author }}</p>
+    <p>
+        著者：{{ $book->author }}
+    </p>
 
-    <p>ISBN：{{ $book->isbn }}</p>
+    <p>
+        ISBN：{{ $book->isbn }}
+    </p>
 
     <p>
         出版日：
@@ -46,8 +55,10 @@
 
     <p>
         ジャンル：
+
         @foreach ($book->genres as $genre)
             {{ $genre->name }}
+
             @unless ($loop->last)
                 /
             @endunless
@@ -60,9 +71,15 @@
         / 5
     </p>
 
-    <p>レビュー件数：{{ $book->reviews_count }}件</p>
+    <p>
+        レビュー件数：
+        {{ $book->reviews_count }}件
+    </p>
 
-    <p>登録者：{{ $book->user->name }}</p>
+    <p>
+        登録者：
+        {{ $book->user->name }}
+    </p>
 
     <h2>説明</h2>
 
@@ -72,19 +89,109 @@
 
     <hr>
 
+    @auth
+        @php
+            $hasReviewed = $book->reviews->contains(
+                'user_id',
+                auth()->id()
+            );
+        @endphp
+
+        @if (!$hasReviewed)
+            <h2>レビューを投稿する</h2>
+
+            <form
+                method="POST"
+                action="{{ route('reviews.store', $book) }}"
+            >
+                @csrf
+
+                <div>
+                    <label for="rating">
+                        評価
+                    </label>
+
+                    <select
+                        id="rating"
+                        name="rating"
+                    >
+                        <option value="">
+                            選択してください
+                        </option>
+
+                        @for ($i = 1; $i <= 5; $i++)
+                            <option
+                                value="{{ $i }}"
+                                {{ old('rating') == $i ? 'selected' : '' }}
+                            >
+                                {{ $i }}
+                            </option>
+                        @endfor
+                    </select>
+
+                    @error('rating')
+                        <p>{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="comment">
+                        レビュー本文
+                    </label>
+
+                    <textarea
+                        id="comment"
+                        name="comment"
+                    >{{ old('comment') }}</textarea>
+
+                    @error('comment')
+                        <p>{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <button type="submit">
+                    レビューを投稿する
+                </button>
+            </form>
+        @else
+            <p>
+                この書籍にはすでにレビューを投稿しています。
+            </p>
+        @endif
+    @endauth
+
+    <hr>
+
     <h2>レビュー</h2>
 
     @forelse ($book->reviews as $review)
         <div>
-            <p>投稿者：{{ $review->user->name }}</p>
-            <p>評価：{{ $review->rating }} / 5</p>
-            <p>{{ $review->comment }}</p>
-            <p>投稿日：{{ $review->created_at->format('Y年m月d日') }}</p>
+            <p>
+                投稿者：
+                {{ $review->user->name }}
+            </p>
+
+            <p>
+                評価：
+                {{ $review->rating }} / 5
+            </p>
+
+            <p>
+                {{ $review->comment }}
+            </p>
+
+            <p>
+                投稿日：
+                {{ $review->created_at->format('Y年m月d日') }}
+            </p>
         </div>
 
         <hr>
     @empty
-        <p>レビューはまだありません。</p>
+        <p>
+            レビューはまだありません。
+        </p>
     @endforelse
+
 </body>
 </html>

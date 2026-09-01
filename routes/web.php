@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BookController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ReviewController;
 
 Route::get('/', [BookController::class, 'index']);
 
@@ -30,3 +31,7 @@ Route::put('/books/{book}', [BookController::class, 'update'])
 Route::delete('/books/{book}', [BookController::class, 'destroy'])
     ->middleware('auth')
     ->name('books.destroy');
+
+Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])
+    ->middleware('auth')
+    ->name('reviews.store');
