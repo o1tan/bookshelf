@@ -98,6 +98,11 @@
         @endphp
 
         @if (!$hasReviewed)
+
+            @error('review')
+                <p>{{ $message }}</p>
+            @enderror
+
             <h2>レビューを投稿する</h2>
 
             <form
@@ -184,6 +189,28 @@
                 投稿日：
                 {{ $review->created_at->format('Y年m月d日') }}
             </p>
+
+            @can('update', $review)
+                <p>
+                    <a href="{{ route('reviews.edit', $review) }}">
+                        このレビューを編集する
+                    </a>
+                </p>
+            @endcan
+            @can('delete', $review)
+                <form
+                    method="POST"
+                    action="{{ route('reviews.destroy', $review) }}"
+                    onsubmit="return confirm('本当にこのレビューを削除しますか？');"
+                >
+                    @csrf
+                    @method('DELETE')
+
+                    <button type="submit">
+                        このレビューを削除する
+                    </button>
+                </form>
+            @endcan
         </div>
 
         <hr>

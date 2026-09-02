@@ -35,3 +35,15 @@ Route::delete('/books/{book}', [BookController::class, 'destroy'])
 Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])
     ->middleware('auth')
     ->name('reviews.store');
+
+Route::get('/reviews/{review}/edit', [ReviewController::class, 'edit'])
+    ->middleware('auth')
+    ->name('reviews.edit');
+
+Route::put('/reviews/{review}', [ReviewController::class, 'update'])
+    ->middleware('auth')
+    ->name('reviews.update');
+
+Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])
+    ->middleware('auth')
+    ->name('reviews.destroy');
