@@ -223,6 +223,44 @@
             </p>
 
             <p>
+                いいね：
+                {{ $review->likedByUsers->count() }}件
+            </p>
+
+            @auth
+                @if ($review->user_id !== auth()->id())
+                    @php
+                        $hasLiked = $review->likedByUsers->contains('id', auth()->id());
+                    @endphp
+
+                    @if ($hasLiked)
+                        <form
+                            method="POST"
+                            action="{{ route('review-likes.destroy', $review) }}"
+                        >
+                            @csrf
+                            @method('DELETE')
+
+                            <button type="submit">
+                                いいねを解除
+                            </button>
+                        </form>
+                    @else
+                        <form
+                            method="POST"
+                            action="{{ route('review-likes.store', $review) }}"
+                        >
+                            @csrf
+
+                            <button type="submit">
+                                いいね
+                            </button>
+                        </form>
+                    @endif
+                @endif
+            @endauth
+
+            <p>
                 投稿日：
                 {{ $review->created_at->format('Y年m月d日') }}
             </p>
