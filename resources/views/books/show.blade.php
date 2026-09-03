@@ -8,7 +8,9 @@
 <body>
 
     <p>
-        <a href="{{ route('books.index') }}">← 書籍一覧へ戻る</a>
+        <a href="{{ route('books.index') }}">
+            ← 書籍一覧へ戻る
+        </a>
     </p>
 
     @can('update', $book)
@@ -55,7 +57,6 @@
 
     <p>
         ジャンル：
-
         @foreach ($book->genres as $genre)
             {{ $genre->name }}
 
@@ -80,6 +81,41 @@
         登録者：
         {{ $book->user->name }}
     </p>
+
+@auth
+    @php
+        $isFavorite = auth()
+            ->user()
+            ->favoriteBooks()
+            ->where('books.id', $book->id)
+            ->exists();
+    @endphp
+
+    @if ($isFavorite)
+            <form
+                method="POST"
+                action="{{ route('favorites.destroy', $book) }}"
+            >
+                @csrf
+                @method('DELETE')
+
+                <button type="submit">
+                    お気に入りから解除
+                </button>
+            </form>
+        @else
+            <form
+                method="POST"
+                action="{{ route('favorites.store', $book) }}"
+            >
+                @csrf
+
+                <button type="submit">
+                    お気に入りに追加
+                </button>
+            </form>
+        @endif
+    @endauth
 
     <h2>説明</h2>
 
@@ -158,6 +194,7 @@
                     レビューを投稿する
                 </button>
             </form>
+
         @else
             <p>
                 この書籍にはすでにレビューを投稿しています。
@@ -197,6 +234,7 @@
                     </a>
                 </p>
             @endcan
+
             @can('delete', $review)
                 <form
                     method="POST"
@@ -214,6 +252,7 @@
         </div>
 
         <hr>
+
     @empty
         <p>
             レビューはまだありません。

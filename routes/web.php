@@ -3,6 +3,7 @@
 use App\Http\Controllers\BookController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\FavoriteController;
 
 Route::get('/', [BookController::class, 'index']);
 
@@ -47,3 +48,15 @@ Route::put('/reviews/{review}', [ReviewController::class, 'update'])
 Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])
     ->middleware('auth')
     ->name('reviews.destroy');
+
+Route::post('/books/{book}/favorite', [FavoriteController::class, 'store'])
+    ->middleware('auth')
+    ->name('favorites.store');
+
+Route::delete('/books/{book}/favorite', [FavoriteController::class, 'destroy'])
+    ->middleware('auth')
+    ->name('favorites.destroy');
+
+Route::get('/favorites', [FavoriteController::class, 'index'])
+    ->middleware('auth')
+    ->name('favorites.index');
