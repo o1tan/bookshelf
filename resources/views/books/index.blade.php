@@ -19,6 +19,12 @@
                 お気に入り書籍を見る
             </a>
         </p>
+
+        <p>
+            <a href="{{ route('genres.index') }}">
+                ジャンルを管理する
+            </a>
+        </p>
     @endauth
 
     @forelse ($books as $book)
