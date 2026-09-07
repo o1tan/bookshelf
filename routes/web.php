@@ -6,6 +6,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ReviewLikeController;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\RankingController;
 
 Route::get('/', [BookController::class, 'index']);
 
@@ -90,5 +91,8 @@ Route::put('/genres/{genre}', [GenreController::class, 'update'])
 Route::delete('/genres/{genre}', [GenreController::class, 'destroy'])
     ->middleware('auth')
     ->name('genres.destroy');
+
+Route::get('/rankings', RankingController::class)
+    ->name('rankings.index');
 
 
