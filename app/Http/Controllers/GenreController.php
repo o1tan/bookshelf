@@ -17,6 +17,21 @@ class GenreController extends Controller
         return view('genres.index', compact('genres'));
     }
 
+    public function show(Genre $genre)
+    {
+        $books = $genre->books()
+            ->with(['user', 'genres'])
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
+            ->orderByDesc('books.created_at')
+            ->get();
+
+        return view(
+            'genres.show',
+            compact('genre', 'books')
+        );
+    }
+
     public function store(StoreGenreRequest $request)
     {
         Genre::create($request->validated());

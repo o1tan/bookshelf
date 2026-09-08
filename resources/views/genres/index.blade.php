@@ -61,6 +61,12 @@
             </p>
 
             <p>
+                <a href="{{ route('genres.show', $genre) }}">
+                    このジャンルの書籍を見る
+                </a>
+            </p>
+
+            <p>
                 <a href="{{ route('genres.edit', $genre) }}">
                     編集
                 </a>
