@@ -36,8 +36,10 @@ class BookController extends Controller
         $genreIds = $validated['genre_ids'];
         unset($validated['genre_ids']);
 
-        $book = DB::transaction(function () use ($validated, $genreIds) {
-            $book = Book::create($validated);
+        $user = $request->user();
+
+        $book = DB::transaction(function () use ($validated, $genreIds, $user) {
+            $book = $user->books()->create($validated);
 
             $book->genres()->attach($genreIds);
 
@@ -92,6 +94,8 @@ class BookController extends Controller
 
     public function destroy(Book $book)
     {
+        $this->authorize('delete', $book);
+
         $book->delete();
 
         return response()->noContent();

@@ -7,6 +7,7 @@ use App\Models\Genre;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class BookApiTest extends TestCase
@@ -87,10 +88,10 @@ class BookApiTest extends TestCase
     public function test_book_can_be_created(): void
     {
         $user = User::factory()->create();
+        Sanctum::actingAs($user);
         $genres = Genre::factory()->count(2)->create();
 
         $payload = [
-            'user_id' => $user->id,
             'title' => 'API登録テスト書籍',
             'author' => 'テスト著者',
             'isbn' => '9781234567897',
@@ -126,6 +127,7 @@ class BookApiTest extends TestCase
     public function test_book_can_be_updated(): void
     {
         $user = User::factory()->create();
+        Sanctum::actingAs($user);
         $book = Book::factory()->create([
             'user_id' => $user->id,
             'isbn' => '9781234567897',
@@ -136,7 +138,6 @@ class BookApiTest extends TestCase
         $book->genres()->attach($oldGenre);
 
         $payload = [
-            'user_id' => $user->id,
             'title' => 'API更新済み書籍',
             'author' => '更新後の著者',
             'isbn' => '9781234567897',
@@ -173,7 +174,13 @@ class BookApiTest extends TestCase
 
     public function test_book_can_be_deleted(): void
     {
-        $book = Book::factory()->create();
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $book = Book::factory()->create([
+            'user_id' => $user->id,
+        ]);
 
         $response = $this->deleteJson(
             "/api/v1/books/{$book->id}"
@@ -188,16 +195,56 @@ class BookApiTest extends TestCase
 
     public function test_book_store_returns_validation_errors(): void
     {
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
         $response = $this->postJson('/api/v1/books', []);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
-                'user_id',
                 'title',
                 'author',
                 'isbn',
                 'published_date',
                 'genre_ids',
             ]);
+    }
+
+    public function test_guest_cannot_create_update_or_delete_book(): void
+    {
+        $book = Book::factory()->create();
+
+        $this->postJson('/api/v1/books', [])
+            ->assertUnauthorized();
+
+        $this->putJson("/api/v1/books/{$book->id}", [])
+            ->assertUnauthorized();
+
+        $this->deleteJson("/api/v1/books/{$book->id}")
+            ->assertUnauthorized();
+    }
+
+    public function test_user_cannot_update_or_delete_another_users_book(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        $book = Book::factory()->create([
+            'user_id' => $owner->id,
+        ]);
+
+        Sanctum::actingAs($otherUser);
+
+        $this->putJson("/api/v1/books/{$book->id}", [])
+            ->assertForbidden();
+
+        $this->deleteJson("/api/v1/books/{$book->id}")
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+            'user_id' => $owner->id,
+        ]);
     }
 }
