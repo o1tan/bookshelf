@@ -17,19 +17,21 @@ class UpdateBookRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'author' => ['required', 'string', 'max:255'],
-
             'isbn' => [
-                'required',
+                'nullable',
                 'digits:13',
                 Rule::unique('books', 'isbn')
                     ->ignore($this->route('book')),
             ],
-
-            'published_date' => ['required', 'date'],
+            'published_date' => ['nullable', 'date'],
             'description' => ['nullable', 'string', 'max:5000'],
             'image_url' => ['nullable', 'url', 'max:2048'],
             'genres' => ['required', 'array', 'min:1'],
-            'genres.*' => ['integer', 'distinct', 'exists:genres,id'],
+            'genres.*' => [
+                'integer',
+                'distinct',
+                'exists:genres,id',
+            ],
         ];
     }
 
@@ -40,10 +42,8 @@ class UpdateBookRequest extends FormRequest
             'title.max' => 'タイトルは255文字以内で入力してください。',
             'author.required' => '著者名は必須です。',
             'author.max' => '著者名は255文字以内で入力してください。',
-            'isbn.required' => 'ISBNは必須です。',
             'isbn.digits' => 'ISBNは13桁の数字で入力してください。',
             'isbn.unique' => 'このISBNはすでに登録されています。',
-            'published_date.required' => '出版日は必須です。',
             'published_date.date' => '出版日は正しい日付で入力してください。',
             'description.max' => '説明は5000文字以内で入力してください。',
             'image_url.url' => '画像URLは正しいURL形式で入力してください。',
@@ -54,30 +54,5 @@ class UpdateBookRequest extends FormRequest
             'genres.*.distinct' => '同じジャンルを重複して選択することはできません。',
             'genres.*.exists' => '選択されたジャンルが存在しません。',
         ];
-    }
-
-    public function edit(Book $book)
-    {
-        $genres = Genre::orderBy('name')->get();
-
-        $book->load('genres');
-
-        return view('books.edit', compact('book', 'genres'));
-    }
-
-    public function update(UpdateBookRequest $request, Book $book)
-    {
-        $validated = $request->validated();
-
-        $genreIds = $validated['genres'];
-        unset($validated['genres']);
-
-        $book->update($validated);
-
-        $book->genres()->sync($genreIds);
-
-        return redirect()
-            ->route('books.show', $book)
-            ->with('success', '書籍を更新しました。');
     }
 }

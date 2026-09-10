@@ -205,8 +205,6 @@ class BookApiTest extends TestCase
             ->assertJsonValidationErrors([
                 'title',
                 'author',
-                'isbn',
-                'published_date',
                 'genre_ids',
             ]);
     }
