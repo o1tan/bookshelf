@@ -245,4 +245,34 @@ class BookApiTest extends TestCase
             'user_id' => $owner->id,
         ]);
     }
+
+    public function test_book_can_be_created_with_bearer_token(): void
+    {
+        $user = User::factory()->create();
+        $genre = Genre::factory()->create();
+
+        $token = $user->createToken('book-api-test')->plainTextToken;
+
+        $payload = [
+            'title' => 'Bearerトークン登録書籍',
+            'author' => 'テスト著者',
+            'isbn' => '9781234567890',
+            'published_date' => '2026-09-10',
+            'description' => 'Bearerトークン認証のテストです。',
+            'image_url' => null,
+            'genre_ids' => [$genre->id],
+        ];
+
+        $response = $this->withToken($token)
+            ->postJson('/api/v1/books', $payload);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.title', 'Bearerトークン登録書籍')
+            ->assertJsonPath('data.user_id', $user->id);
+
+        $this->assertDatabaseHas('books', [
+            'title' => 'Bearerトークン登録書籍',
+            'user_id' => $user->id,
+        ]);
+    }
 }
