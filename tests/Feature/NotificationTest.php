@@ -73,4 +73,38 @@ class NotificationTest extends TestCase
             ->assertOk()
             ->assertSee('新しい通知はありません。');
     }
+
+        public function test_notifications_are_paginated(): void
+    {
+        $user = User::factory()->create();
+
+        for ($i = 1; $i <= 11; $i++) {
+            $book = Book::factory()->create([
+                'title' => "通知対象書籍{$i}",
+            ]);
+
+            $readingPlan = ReadingPlan::factory()->create([
+                'user_id' => $user->id,
+                'book_id' => $book->id,
+            ]);
+
+            $user->notify(
+                new ReadingPlanReminderNotification(
+                    $readingPlan->load('book')
+                )
+            );
+        }
+
+        $response = $this
+            ->actingAs($user)
+            ->get('/notifications?page=2');
+
+        $response->assertOk();
+
+        $notifications = $response->viewData('notifications');
+
+        $this->assertSame(2, $notifications->currentPage());
+        $this->assertSame(11, $notifications->total());
+        $this->assertCount(1, $notifications->items());
+    }
 }

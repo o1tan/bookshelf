@@ -3,7 +3,7 @@
 @section('title', '読書計画編集 | BookShelf')
 
 @section('content')
-    <div class="page-heading">
+    <div class="page-heading form-page-heading">
         <div>
             <h1>読書計画編集</h1>
             <p class="form-help">
