@@ -8,6 +8,7 @@ use App\Http\Controllers\ReviewLikeController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\IsbnLookupController;
+use App\Http\Controllers\ReadingReportController;
 
 Route::get('/', [BookController::class, 'index']);
 
@@ -106,5 +107,8 @@ Route::delete('/genres/{genre}', [GenreController::class, 'destroy'])
 
 Route::get('/rankings', RankingController::class)
     ->name('rankings.index');
+
+Route::get('/reading-report', ReadingReportController::class)
+    ->middleware('auth')->name('reading-report');
 
 
