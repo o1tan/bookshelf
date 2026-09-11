@@ -9,6 +9,7 @@ use App\Http\Controllers\GenreController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\IsbnLookupController;
 use App\Http\Controllers\ReadingReportController;
+use App\Http\Controllers\ReadingPlanController;
 
 Route::get('/', [BookController::class, 'index']);
 
@@ -110,5 +111,9 @@ Route::get('/rankings', RankingController::class)
 
 Route::get('/reading-report', ReadingReportController::class)
     ->middleware('auth')->name('reading-report');
+
+Route::resource('reading-plans', ReadingPlanController::class)
+    ->except('show')
+    ->middleware('auth');
 
 
