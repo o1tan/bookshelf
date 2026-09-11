@@ -13,6 +13,41 @@
     <h1>BookShelf</h1>
     <h2>書籍一覧</h2>
 
+    <form method="GET" action="{{ route('books.index') }}">
+        <div>
+            <label for="keyword">キーワード</label>
+            <input
+                id="keyword"
+                type="search"
+                name="keyword"
+                value="{{ $keyword }}"
+                placeholder="タイトル・著者名で検索"
+            >
+        </div>
+
+        <div>
+            <label for="genre">ジャンル</label>
+            <select id="genre" name="genre">
+                <option value="">すべて</option>
+
+                @foreach ($genres as $genreOption)
+                    <option
+                        value="{{ $genreOption->id }}"
+                        @selected((string) $genre === (string) $genreOption->id)
+                    >
+                        {{ $genreOption->name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <button type="submit">検索する</button>
+
+        <a href="{{ route('books.index') }}">
+            条件をクリア
+        </a>
+    </form>
+
     <p>
         <a href="{{ route('rankings.index') }}">
             書籍ランキングを見る
@@ -74,5 +109,12 @@
     @empty
         <p>書籍が登録されていません。</p>
     @endforelse
+
+    @if ($books->hasPages())
+        <div>
+            {{ $books->links() }}
+        </div>
+    @endif
+
 </body>
 </html>

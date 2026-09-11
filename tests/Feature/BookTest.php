@@ -151,4 +151,59 @@ class BookTest extends TestCase
             'id' => $book->id,
         ]);
     }
+
+    public function test_books_can_be_searched_by_title_or_author(): void
+{
+    Book::factory()->create([
+        'title' => 'Laravel入門',
+        'author' => '山田太郎',
+    ]);
+
+    Book::factory()->create([
+        'title' => 'PHP実践',
+        'author' => 'Laravel研究会',
+    ]);
+
+    Book::factory()->create([
+        'title' => 'JavaScript入門',
+        'author' => '佐藤花子',
+    ]);
+
+    $response = $this->get('/books?keyword=Laravel');
+
+    $response->assertOk()
+        ->assertSee('Laravel入門')
+        ->assertSee('PHP実践')
+        ->assertDontSee('JavaScript入門');
+    }
+
+    public function test_books_can_be_filtered_by_genre(): void
+    {
+        $targetGenre = Genre::factory()->create([
+            'name' => '技術書',
+        ]);
+
+        $otherGenre = Genre::factory()->create([
+            'name' => '小説',
+        ]);
+
+        $targetBook = Book::factory()->create([
+            'title' => '表示される技術書',
+        ]);
+
+        $otherBook = Book::factory()->create([
+            'title' => '表示されない小説',
+        ]);
+
+        $targetBook->genres()->attach($targetGenre);
+        $otherBook->genres()->attach($otherGenre);
+
+        $response = $this->get(
+            "/books?genre={$targetGenre->id}"
+        );
+
+        $response->assertOk()
+            ->assertSee('表示される技術書')
+            ->assertDontSee('表示されない小説');
+    }
 }

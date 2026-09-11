@@ -2,31 +2,63 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Book;
 use App\Http\Requests\StoreBookRequest;
-use App\Models\Genre;
 use App\Http\Requests\UpdateBookRequest;
+use App\Models\Book;
+use App\Models\Genre;
+use Illuminate\Http\Request;
 
 class BookController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $books = Book::with(['user', 'genres'])
+        $query = Book::with(['user', 'genres'])
             ->withAvg('reviews', 'rating')
-            ->withCount('reviews')
-            ->latest()
-            ->get();
+            ->withCount('reviews');
 
-        return view('books.index', compact('books'));
+        $keyword = trim((string) $request->input('keyword'));
+
+        if ($keyword !== '') {
+            $query->where(function ($query) use ($keyword) {
+                $query->where('title', 'like', "%{$keyword}%")
+                    ->orWhere('author', 'like', "%{$keyword}%");
+            });
+        }
+
+        $genre = $request->input('genre');
+
+        if ($genre) {
+            $query->whereHas('genres', function ($query) use ($genre) {
+                $query->where('genres.id', $genre);
+            });
+        }
+
+        $sort = $request->input('sort', 'latest');
+
+        match ($sort) {
+            'oldest' => $query->oldest(),
+            'title' => $query->orderBy('title'),
+            'rating' => $query
+                ->orderByRaw('reviews_avg_rating IS NULL')
+                ->orderByDesc('reviews_avg_rating'),
+            default => $query->latest(),
+        };
+
+        $books = $query
+            ->paginate(10)
+            ->withQueryString();
+
+        $genres = Genre::orderBy('name')->get();
+
+        return view('books.index', compact(
+            'books',
+            'genres',
+            'keyword',
+            'genre',
+            'sort'
+        ));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $genres = Genre::orderBy('name')->get();
@@ -34,9 +66,6 @@ class BookController extends Controller
         return view('books.create', compact('genres'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreBookRequest $request)
     {
         $validated = $request->validated();
@@ -55,9 +84,6 @@ class BookController extends Controller
             ->with('success', '書籍を登録しました。');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Book $book)
     {
         $book->load([
@@ -72,9 +98,6 @@ class BookController extends Controller
         return view('books.show', compact('book'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Book $book)
     {
         $this->authorize('update', $book);
@@ -86,9 +109,6 @@ class BookController extends Controller
         return view('books.edit', compact('book', 'genres'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateBookRequest $request, Book $book)
     {
         $this->authorize('update', $book);
