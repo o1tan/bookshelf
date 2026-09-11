@@ -7,6 +7,7 @@ use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ReviewLikeController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\RankingController;
+use App\Http\Controllers\IsbnLookupController;
 
 Route::get('/', [BookController::class, 'index']);
 
@@ -15,6 +16,10 @@ Route::get('/books', [BookController::class, 'index'])
 
 Route::get('/books/export', [BookController::class, 'export'])
     ->name('books.export');
+
+Route::get('/books/isbn/{isbn}', IsbnLookupController::class)
+    ->middleware('auth')
+    ->name('books.isbn');
 
 Route::get('/books/create', [BookController::class, 'create'])
     ->middleware('auth')

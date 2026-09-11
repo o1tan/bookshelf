@@ -50,7 +50,16 @@
                 type="text"
                 name="isbn"
                 value="{{ old('isbn') }}"
+                inputmode="numeric"
+                maxlength="13"
+                placeholder="13桁のISBN"
             >
+
+            <button id="isbn-search-button" type="button">
+                ISBN検索
+            </button>
+
+            <p id="isbn-search-message"></p>
 
             @error('isbn')
                 <p>{{ $message }}</p>
@@ -123,5 +132,77 @@
 
         <button type="submit">登録する</button>
     </form>
+
+    <script>
+        const isbnInput = document.getElementById('isbn');
+        const searchButton = document.getElementById(
+            'isbn-search-button'
+        );
+        const searchMessage = document.getElementById(
+            'isbn-search-message'
+        );
+
+        searchButton.addEventListener('click', async () => {
+            const isbn = isbnInput.value.trim();
+
+            searchMessage.textContent = '';
+
+            if (!/^\d{13}$/.test(isbn)) {
+                searchMessage.textContent =
+                    'ISBNは13桁の数字で入力してください。';
+                return;
+            }
+
+            searchButton.disabled = true;
+            searchButton.textContent = '検索中...';
+
+            try {
+                const response = await fetch(
+                    `{{ url('/books/isbn') }}/${isbn}`,
+                    {
+                        headers: {
+                            Accept: 'application/json',
+                        },
+                    }
+                );
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        result.message
+                        ?? '書籍情報の取得に失敗しました。'
+                    );
+                }
+
+                const book = result.data;
+
+                document.getElementById('title').value =
+                    book.title ?? '';
+
+                document.getElementById('author').value =
+                    book.author ?? '';
+
+                document.getElementById('published_date').value =
+                    book.published_date ?? '';
+
+                document.getElementById('description').value =
+                    book.description ?? '';
+
+                document.getElementById('image_url').value =
+                    book.image_url ?? '';
+
+                isbnInput.value = book.isbn ?? isbn;
+
+                searchMessage.textContent =
+                    '書籍情報を取得しました。';
+            } catch (error) {
+                searchMessage.textContent = error.message;
+            } finally {
+                searchButton.disabled = false;
+                searchButton.textContent = 'ISBN検索';
+            }
+        });
+    </script>
 </body>
 </html>
