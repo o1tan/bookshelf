@@ -1,138 +1,182 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>書籍登録 | BookShelf</title>
-</head>
-<body>
-    <p>
-        <a href="{{ route('books.index') }}">← 書籍一覧へ戻る</a>
-    </p>
+@extends('layouts.app')
 
-    <h1>書籍登録</h1>
+@section('title', '書籍登録 | BookShelf')
 
-    <form method="POST" action="{{ route('books.store') }}">
-        @csrf
-
+@section('content')
+    <div class="page-heading">
         <div>
-            <label for="title">タイトル</label>
-            <input
-                id="title"
-                type="text"
-                name="title"
-                value="{{ old('title') }}"
-            >
-
-            @error('title')
-                <p>{{ $message }}</p>
-            @enderror
+            <h1>書籍の登録</h1>
+            <p class="form-help">
+                ISBN検索を使うと書籍情報を自動入力できます。
+            </p>
         </div>
 
-        <div>
-            <label for="author">著者</label>
-            <input
-                id="author"
-                type="text"
-                name="author"
-                value="{{ old('author') }}"
-            >
+        <a
+            class="button button-secondary"
+            href="{{ route('books.index') }}"
+        >
+            書籍一覧へ戻る
+        </a>
+    </div>
 
-            @error('author')
-                <p>{{ $message }}</p>
-            @enderror
-        </div>
+    <section class="panel form-card">
+        <form
+            method="POST"
+            action="{{ route('books.store') }}"
+            class="form-stack"
+        >
+            @csrf
 
-        <div>
-            <label for="isbn">ISBN</label>
-            <input
-                id="isbn"
-                type="text"
-                name="isbn"
-                value="{{ old('isbn') }}"
-                inputmode="numeric"
-                maxlength="13"
-                placeholder="13桁のISBN"
-            >
+            <div class="form-group">
+                <label for="isbn">ISBN（任意）</label>
 
-            <button id="isbn-search-button" type="button">
-                ISBN検索
-            </button>
-
-            <p id="isbn-search-message"></p>
-
-            @error('isbn')
-                <p>{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
-            <label for="published_date">出版日</label>
-            <input
-                id="published_date"
-                type="date"
-                name="published_date"
-                value="{{ old('published_date') }}"
-            >
-
-            @error('published_date')
-                <p>{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
-            <label for="description">説明</label>
-            <textarea
-                id="description"
-                name="description"
-            >{{ old('description') }}</textarea>
-
-            @error('description')
-                <p>{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
-            <label for="image_url">画像URL</label>
-            <input
-                id="image_url"
-                type="url"
-                name="image_url"
-                value="{{ old('image_url') }}"
-            >
-
-            @error('image_url')
-                <p>{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
-            <p>ジャンル</p>
-
-            @foreach ($genres as $genre)
-                <label>
+                <div class="isbn-row">
                     <input
-                        type="checkbox"
-                        name="genres[]"
-                        value="{{ $genre->id }}"
-                        {{ in_array($genre->id, old('genres', [])) ? 'checked' : '' }}
+                        id="isbn"
+                        type="text"
+                        name="isbn"
+                        value="{{ old('isbn') }}"
+                        inputmode="numeric"
+                        maxlength="13"
+                        placeholder="13桁のISBN"
                     >
-                    {{ $genre->name }}
+
+                    <button
+                        id="isbn-search-button"
+                        type="button"
+                    >
+                        ISBN検索
+                    </button>
+                </div>
+
+                <p
+                    id="isbn-search-message"
+                    class="form-help"
+                ></p>
+
+                @error('isbn')
+                    <p class="error-message">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="title">タイトル</label>
+                <input
+                    id="title"
+                    type="text"
+                    name="title"
+                    value="{{ old('title') }}"
+                >
+
+                @error('title')
+                    <p class="error-message">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="author">著者</label>
+                <input
+                    id="author"
+                    type="text"
+                    name="author"
+                    value="{{ old('author') }}"
+                >
+
+                @error('author')
+                    <p class="error-message">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="published_date">
+                    出版日（任意）
                 </label>
-            @endforeach
+                <input
+                    id="published_date"
+                    type="date"
+                    name="published_date"
+                    value="{{ old('published_date') }}"
+                >
 
-            @error('genres')
-                <p>{{ $message }}</p>
-            @enderror
+                @error('published_date')
+                    <p class="error-message">{{ $message }}</p>
+                @enderror
+            </div>
 
-            @error('genres.*')
-                <p>{{ $message }}</p>
-            @enderror
-        </div>
+            <div class="form-group">
+                <label for="description">説明（任意）</label>
+                <textarea
+                    id="description"
+                    name="description"
+                >{{ old('description') }}</textarea>
 
-        <button type="submit">登録する</button>
-    </form>
+                @error('description')
+                    <p class="error-message">{{ $message }}</p>
+                @enderror
+            </div>
 
+            <div class="form-group">
+                <label for="image_url">画像URL（任意）</label>
+                <input
+                    id="image_url"
+                    type="url"
+                    name="image_url"
+                    value="{{ old('image_url') }}"
+                >
+
+                @error('image_url')
+                    <p class="error-message">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <span class="form-label">ジャンル</span>
+
+                <div class="genre-options">
+                    @foreach ($genres as $genre)
+                        <label>
+                            <input
+                                type="checkbox"
+                                name="genres[]"
+                                value="{{ $genre->id }}"
+                                @checked(
+                                    in_array(
+                                        $genre->id,
+                                        old('genres', [])
+                                    )
+                                )
+                            >
+                            {{ $genre->name }}
+                        </label>
+                    @endforeach
+                </div>
+
+                @error('genres')
+                    <p class="error-message">{{ $message }}</p>
+                @enderror
+
+                @error('genres.*')
+                    <p class="error-message">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="actions">
+                <button type="submit">
+                    登録する
+                </button>
+
+                <a
+                    class="button button-secondary"
+                    href="{{ route('books.index') }}"
+                >
+                    キャンセル
+                </a>
+            </div>
+        </form>
+    </section>
+@endsection
+
+@section('scripts')
     <script>
         const isbnInput = document.getElementById('isbn');
         const searchButton = document.getElementById(
@@ -196,13 +240,16 @@
 
                 searchMessage.textContent =
                     '書籍情報を取得しました。';
+                searchMessage.classList.add('message-success');
             } catch (error) {
-                searchMessage.textContent = error.message;
+                searchMessage.textContent =
+                    error.message
+                    ?? '書籍情報の取得に失敗しました。';
+                searchMessage.classList.remove('message-success');
             } finally {
                 searchButton.disabled = false;
                 searchButton.textContent = 'ISBN検索';
             }
         });
     </script>
-</body>
-</html>
+@endsection
