@@ -30,6 +30,34 @@
         </li>
     </ul>
 
+    <h2>好きなジャンル TOP3</h2>
+
+    <ol>
+        @forelse ($favoriteGenres as $favoriteGenre)
+            <li>
+                {{ $favoriteGenre['genre']->name }}
+                （{{ $favoriteGenre['count'] }}冊）
+            </li>
+        @empty
+            <li>集計できるジャンルはありません。</li>
+        @endforelse
+    </ol>
+
+    <h2>高評価書籍 TOP3</h2>
+
+    <ol>
+        @forelse ($highRatedReviews as $review)
+            <li>
+                <a href="{{ route('books.show', $review->book) }}">
+                    {{ $review->book->title }}
+                </a>
+                （評価：{{ $review->rating }} / 5）
+            </li>
+        @empty
+            <li>評価した書籍はありません。</li>
+        @endforelse
+    </ol>
+
     <h2>登録している読書計画</h2>
 
     @forelse ($readingPlans as $readingPlan)

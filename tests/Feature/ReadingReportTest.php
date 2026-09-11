@@ -7,6 +7,7 @@ use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Models\Genre;
 
 class ReadingReportTest extends TestCase
 {
@@ -73,5 +74,67 @@ class ReadingReportTest extends TestCase
 
         $response->assertViewHas('reviewCount', 2);
         $response->assertViewHas('averageRating', 4.5);
+    }
+
+    public function test_favorite_genres_and_high_rated_books_are_aggregated(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        $mystery = Genre::factory()->create([
+            'name' => 'ミステリー',
+        ]);
+
+        $fantasy = Genre::factory()->create([
+            'name' => 'ファンタジー',
+        ]);
+
+        $highRatedReview = Review::factory()->create([
+            'user_id' => $user->id,
+            'rating' => 5,
+        ]);
+
+        $middleRatedReview = Review::factory()->create([
+            'user_id' => $user->id,
+            'rating' => 3,
+        ]);
+
+        $highRatedReview->book->genres()->attach([
+            $mystery->id,
+            $fantasy->id,
+        ]);
+
+        $middleRatedReview->book->genres()->attach($mystery->id);
+
+        $otherReview = Review::factory()->create([
+            'user_id' => $otherUser->id,
+            'rating' => 1,
+        ]);
+
+        $otherReview->book->genres()->attach($fantasy->id);
+
+        $response = $this
+            ->actingAs($user)
+            ->get('/reading-report');
+
+        $response->assertOk();
+
+        $response->assertViewHas(
+            'favoriteGenres',
+            fn ($genres) =>
+                $genres->count() === 2
+                && $genres->first()['genre']->is($mystery)
+                && $genres->first()['count'] === 2
+        );
+
+        $response->assertViewHas(
+            'highRatedReviews',
+            fn ($reviews) =>
+                $reviews->count() === 2
+                && $reviews->first()->is($highRatedReview)
+        );
+
+        $response->assertSee('ミステリー');
+        $response->assertSee($highRatedReview->book->title);
     }
 }
