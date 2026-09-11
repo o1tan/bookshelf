@@ -1,97 +1,158 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>読書レポート</title>
-</head>
-<body>
-    <h1>読書レポート</h1>
+@extends('layouts.app')
 
-    <p>
-        <a href="{{ route('books.index') }}">書籍一覧へ戻る</a>
-    </p>
+@section('title', 'マイ読書レポート | BookShelf')
 
-    <h2>読書状況</h2>
-
-    <ul>
-        <li>未読：{{ $statusCounts['not_started'] }}冊</li>
-        <li>読書中：{{ $statusCounts['reading'] }}冊</li>
-        <li>読了：{{ $statusCounts['completed'] }}冊</li>
-    </ul>
-
-    <h2>レビュー実績</h2>
-
-    <ul>
-        <li>投稿数：{{ $reviewCount }}件</li>
-        <li>
-            平均評価：
-            {{ $averageRating !== null ? number_format($averageRating, 1) : '未評価' }}
-        </li>
-    </ul>
-
-    <h2>好きなジャンル TOP3</h2>
-
-    <ol>
-        @forelse ($favoriteGenres as $favoriteGenre)
-            <li>
-                {{ $favoriteGenre['genre']->name }}
-                （{{ $favoriteGenre['count'] }}冊）
-            </li>
-        @empty
-            <li>集計できるジャンルはありません。</li>
-        @endforelse
-    </ol>
-
-    <h2>高評価書籍 TOP3</h2>
-
-    <ol>
-        @forelse ($highRatedReviews as $review)
-            <li>
-                <a href="{{ route('books.show', $review->book) }}">
-                    {{ $review->book->title }}
-                </a>
-                （評価：{{ $review->rating }} / 5）
-            </li>
-        @empty
-            <li>評価した書籍はありません。</li>
-        @endforelse
-    </ol>
-
-    <h2>登録している読書計画</h2>
-
-    @forelse ($readingPlans as $readingPlan)
+@section('content')
+    <div class="page-heading">
         <div>
-            <h3>
-                <a href="{{ route('books.show', $readingPlan->book) }}">
-                    {{ $readingPlan->book->title }}
-                </a>
-            </h3>
+            <h1>マイ読書レポート</h1>
+        </div>
+    </div>
 
-            <p>著者：{{ $readingPlan->book->author }}</p>
-            <p>期限：{{ $readingPlan->deadline->format('Y年m月d日') }}</p>
+    <h2 class="section-title">基本情報</h2>
 
-            <p>
-                状態：
-                @switch($readingPlan->status)
-                    @case('not_started')
-                        未読
-                        @break
-                    @case('reading')
-                        読書中
-                        @break
-                    @case('completed')
-                        読了
-                        @break
-                    @default
-                        不明
-                @endswitch
-            </p>
+    <div class="report-stats">
+        <article class="panel report-stat">
+            <strong class="report-number report-number-blue">
+                {{ $readingPlans->count() }}
+            </strong>
+            <span>読書計画</span>
+        </article>
+
+        <article class="panel report-stat">
+            <strong class="report-number report-number-green">
+                {{ $statusCounts['completed'] }}
+            </strong>
+            <span>読了冊数</span>
+        </article>
+
+        <article class="panel report-stat">
+            <strong class="report-number report-number-orange">
+                {{ $averageRating !== null
+                    ? number_format($averageRating, 1)
+                    : '-' }}
+            </strong>
+            <span>平均評価</span>
+        </article>
+    </div>
+
+    <div class="report-grid">
+        <section class="panel">
+            <h2 class="panel-title">好きなジャンル</h2>
+
+            @php
+                $maxGenreCount = $favoriteGenres->max('count') ?: 1;
+            @endphp
+
+            <div class="genre-ranking">
+                @forelse ($favoriteGenres as $index => $favoriteGenre)
+                    <div class="genre-rank-row">
+                        <span class="genre-rank-number">
+                            {{ $index + 1 }}
+                        </span>
+
+                        <div class="genre-rank-content">
+                            <div class="genre-rank-label">
+                                <span>
+                                    {{ $favoriteGenre['genre']->name }}
+                                </span>
+
+                                <span>
+                                    {{ $favoriteGenre['count'] }}冊
+                                </span>
+                            </div>
+
+                            <div class="genre-bar">
+                                <span
+                                    style="width: {{
+                                        ($favoriteGenre['count']
+                                        / $maxGenreCount) * 100
+                                    }}%;"
+                                ></span>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <p class="empty-text">
+                        集計できるジャンルはありません。
+                    </p>
+                @endforelse
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2 class="panel-title">高評価書籍 TOP5</h2>
+
+            <div class="top-book-list">
+                @forelse ($highRatedReviews as $index => $review)
+                    <a
+                        class="top-book-row"
+                        href="{{ route('books.show', $review->book) }}"
+                    >
+                        <span class="rank-circle">
+                            {{ $index + 1 }}
+                        </span>
+
+                        <span class="top-book-info">
+                            <strong>{{ $review->book->title }}</strong>
+                            <small>{{ $review->book->author }}</small>
+                        </span>
+
+                        <span class="rating">
+                            ★ {{ number_format($review->rating, 1) }}
+                        </span>
+                    </a>
+                @empty
+                    <p class="empty-text">
+                        評価した書籍はありません。
+                    </p>
+                @endforelse
+            </div>
+        </section>
+    </div>
+
+    <section class="panel">
+        <div class="panel-heading">
+            <h2 class="panel-title">レビュー評価書籍 TOP5</h2>
+
+            <span class="book-meta">
+                投稿レビュー：{{ $reviewCount }}件
+            </span>
         </div>
 
-        <hr>
-    @empty
-        <p>登録されている読書計画はありません。</p>
-    @endforelse
-</body>
-</html>
+        @if ($highRatedReviews->isNotEmpty())
+            <div class="report-book-grid">
+                @foreach ($highRatedReviews as $review)
+                    <article class="report-book-card">
+                        <div class="report-book-rank">
+                            {{ $loop->iteration }}
+                        </div>
+
+                        <div>
+                            <h3>
+                                <a href="{{ route(
+                                    'books.show',
+                                    $review->book
+                                ) }}">
+                                    {{ $review->book->title }}
+                                </a>
+                            </h3>
+
+                            <p class="book-meta">
+                                {{ $review->book->author }}
+                            </p>
+                        </div>
+
+                        <strong class="rating">
+                            ★ {{ number_format($review->rating, 1) }}
+                        </strong>
+                    </article>
+                @endforeach
+            </div>
+        @else
+            <p class="empty-text">
+                評価した書籍はありません。
+            </p>
+        @endif
+    </section>
+@endsection

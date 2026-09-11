@@ -10,6 +10,7 @@ use App\Http\Controllers\RankingController;
 use App\Http\Controllers\IsbnLookupController;
 use App\Http\Controllers\ReadingReportController;
 use App\Http\Controllers\ReadingPlanController;
+use App\Http\Controllers\NotificationController;
 
 Route::get('/', [BookController::class, 'index']);
 
@@ -110,10 +111,15 @@ Route::get('/rankings', RankingController::class)
     ->name('rankings.index');
 
 Route::get('/reading-report', ReadingReportController::class)
-    ->middleware('auth')->name('reading-report');
+    ->middleware('auth')
+    ->name('reports.index');
 
 Route::resource('reading-plans', ReadingPlanController::class)
     ->except('show')
     ->middleware('auth');
+
+Route::get('/notifications', NotificationController::class)
+    ->middleware('auth')
+    ->name('notifications.index');
 
 

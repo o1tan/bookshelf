@@ -1,55 +1,73 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>レビュー編集 | BookShelf</title>
-</head>
-<body>
+@extends('layouts.app')
 
-    <h1>レビュー編集</h1>
+@section('title', 'レビュー編集 | BookShelf')
 
-    <form
-        method="POST"
-        action="{{ route('reviews.update', $review) }}"
-    >
-        @csrf
-        @method('PUT')
-
+@section('content')
+    <div class="page-heading form-page-heading">
         <div>
-            <label for="rating">評価</label>
-
-            <select id="rating" name="rating">
-                @for ($i = 1; $i <= 5; $i++)
-                    <option
-                        value="{{ $i }}"
-                        {{ old('rating', $review->rating) == $i ? 'selected' : '' }}
-                    >
-                        {{ $i }}
-                    </option>
-                @endfor
-            </select>
-
-            @error('rating')
-                <p>{{ $message }}</p>
-            @enderror
+            <h1>レビュー編集</h1>
+            <p class="form-help">
+                {{ $review->book->title }}
+            </p>
         </div>
+    </div>
 
-        <div>
-            <label for="comment">レビュー本文</label>
+    <section class="panel form-card">
+        <form
+            method="POST"
+            action="{{ route('reviews.update', $review) }}"
+            class="form-stack"
+        >
+            @csrf
+            @method('PUT')
 
-            <textarea
-                id="comment"
-                name="comment"
-            >{{ old('comment', $review->comment) }}</textarea>
+            <div class="form-group">
+                <label for="rating">評価</label>
 
-            @error('comment')
-                <p>{{ $message }}</p>
-            @enderror
-        </div>
+                <select id="rating" name="rating" required>
+                    @for ($i = 1; $i <= 5; $i++)
+                        <option
+                            value="{{ $i }}"
+                            @selected(
+                                old('rating', $review->rating) == $i
+                            )
+                        >
+                            {{ $i }} / 5
+                        </option>
+                    @endfor
+                </select>
 
-        <button type="submit">レビューを更新する</button>
-    </form>
+                @error('rating')
+                    <p class="error-message">{{ $message }}</p>
+                @enderror
+            </div>
 
-</body>
-</html>
+            <div class="form-group">
+                <label for="comment">レビュー本文</label>
+
+                <textarea
+                    id="comment"
+                    name="comment"
+                    required
+                >{{ old('comment', $review->comment) }}</textarea>
+
+                @error('comment')
+                    <p class="error-message">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="actions form-actions">
+                <a
+                    class="button button-secondary"
+                    href="{{ route('books.show', $review->book) }}"
+                >
+                    キャンセル
+                </a>
+
+                <button type="submit">
+                    更新する
+                </button>
+            </div>
+        </form>
+    </section>
+@endsection

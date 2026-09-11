@@ -1,77 +1,89 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>会員登録 | BookShelf</title>
-</head>
-<body>
-    <h1>会員登録</h1>
+@extends('layouts.guest')
 
-    <form method="POST" action="/register">
+@section('title', '会員登録 | BookShelf')
+
+@section('content')
+    <h1 class="auth-title">会員登録</h1>
+
+    @if ($errors->any())
+        <div class="error-summary">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <form
+        method="POST"
+        action="{{ route('register') }}"
+        class="form-stack"
+    >
         @csrf
 
-        <div>
-            <label for="name">名前</label>
+        <div class="form-group">
+            <label for="name">ユーザー名</label>
+
             <input
                 id="name"
-                type="text"
                 name="name"
+                type="text"
                 value="{{ old('name') }}"
+                autocomplete="name"
                 required
                 autofocus
             >
-
-            @error('name')
-                <p>{{ $message }}</p>
-            @enderror
         </div>
 
-        <div>
+        <div class="form-group">
             <label for="email">メールアドレス</label>
+
             <input
                 id="email"
-                type="email"
                 name="email"
+                type="email"
                 value="{{ old('email') }}"
+                autocomplete="email"
                 required
             >
-
-            @error('email')
-                <p>{{ $message }}</p>
-            @enderror
         </div>
 
-        <div>
+        <div class="form-group">
             <label for="password">パスワード</label>
+
             <input
                 id="password"
-                type="password"
                 name="password"
+                type="password"
+                autocomplete="new-password"
                 required
             >
-
-            @error('password')
-                <p>{{ $message }}</p>
-            @enderror
         </div>
 
-        <div>
-            <label for="password_confirmation">パスワード確認</label>
+        <div class="form-group">
+            <label for="password_confirmation">
+                パスワード確認
+            </label>
+
             <input
                 id="password_confirmation"
-                type="password"
                 name="password_confirmation"
+                type="password"
+                autocomplete="new-password"
                 required
             >
         </div>
 
-        <button type="submit">登録</button>
+        <button type="submit">
+            登録する
+        </button>
     </form>
 
-    <p>
+    <p class="auth-footer">
         すでにアカウントをお持ちの方は
-        <a href="/login">ログイン</a>
+        <a href="{{ route('login') }}">
+            ログイン
+        </a>
     </p>
-</body>
-</html>
+@endsection

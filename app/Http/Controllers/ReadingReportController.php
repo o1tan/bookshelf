@@ -44,12 +44,12 @@ class ReadingReportController extends Controller
                 'count' => $genres->count(),
             ])
             ->sortByDesc('count')
-            ->take(3)
+            ->take(5)
             ->values();
 
         $highRatedReviews = $reviews
             ->sortByDesc('rating')
-            ->take(3)
+            ->take(5)
             ->values();
 
         return view('reading-reports.show', compact(

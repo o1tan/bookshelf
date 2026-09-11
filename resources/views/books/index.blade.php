@@ -176,14 +176,10 @@
             @endforeach
         </div>
 
-        @if ($books->hasPages())
-            <div class="pagination">
-                {{ $books->links() }}
-            </div>
-        @endif
-    @else
-        <div class="panel empty-state">
-            条件に一致する書籍がありません。
-        </div>
-    @endif
-@endsection
+                <x-pagination :paginator="$books" />
+                    @else
+                        <div class="panel empty-state">
+                            条件に一致する書籍がありません。
+                        </div>
+                    @endif
+                @endsection

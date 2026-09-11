@@ -1,47 +1,56 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ジャンル編集 | BookShelf</title>
-</head>
-<body>
+@extends('layouts.app')
 
-    <p>
-        <a href="{{ route('genres.index') }}">
-            ← ジャンル管理へ戻る
-        </a>
-    </p>
+@section('title', 'ジャンル編集 | BookShelf')
 
-    <h1>ジャンル編集</h1>
-
-    <form
-        method="POST"
-        action="{{ route('genres.update', $genre) }}"
-    >
-        @csrf
-        @method('PUT')
-
+@section('content')
+    <div class="page-heading form-page-heading">
         <div>
-            <label for="name">ジャンル名</label>
-
-            <input
-                type="text"
-                id="name"
-                name="name"
-                value="{{ old('name', $genre->name) }}"
-                maxlength="100"
-            >
-
-            @error('name')
-                <p>{{ $message }}</p>
-            @enderror
+            <h1>ジャンル編集</h1>
+            <p class="form-help">
+                ジャンル名を修正してください。
+            </p>
         </div>
+    </div>
 
-        <button type="submit">
-            更新する
-        </button>
-    </form>
+    <section class="panel form-card">
+        <form
+            method="POST"
+            action="{{ route('genres.update', $genre) }}"
+            class="form-stack"
+        >
+            @csrf
+            @method('PUT')
 
-</body>
-</html>
+            <div class="form-group">
+                <label for="name">ジャンル名</label>
+
+                <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    value="{{ old('name', $genre->name) }}"
+                    maxlength="100"
+                    required
+                    autofocus
+                >
+
+                @error('name')
+                    <p class="error-message">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="actions form-actions">
+                <a
+                    class="button button-secondary"
+                    href="{{ route('genres.index') }}"
+                >
+                    キャンセル
+                </a>
+
+                <button type="submit">
+                    更新する
+                </button>
+            </div>
+        </form>
+    </section>
+@endsection

@@ -1,52 +1,70 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ログイン | BookShelf</title>
-</head>
-<body>
-    <h1>ログイン</h1>
+@extends('layouts.guest')
 
-    <form method="POST" action="/login">
+@section('title', 'ログイン | BookShelf')
+
+@section('content')
+    <h1 class="auth-title">ログイン</h1>
+
+    @if ($errors->any())
+        <div class="error-summary">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <form
+        method="POST"
+        action="{{ route('login') }}"
+        class="form-stack"
+    >
         @csrf
 
-        <div>
+        <div class="form-group">
             <label for="email">メールアドレス</label>
+
             <input
                 id="email"
-                type="email"
                 name="email"
+                type="email"
                 value="{{ old('email') }}"
+                autocomplete="email"
                 required
                 autofocus
             >
-
-            @error('email')
-                <p>{{ $message }}</p>
-            @enderror
         </div>
 
-        <div>
+        <div class="form-group">
             <label for="password">パスワード</label>
+
             <input
                 id="password"
-                type="password"
                 name="password"
+                type="password"
+                autocomplete="current-password"
                 required
             >
-
-            @error('password')
-                <p>{{ $message }}</p>
-            @enderror
         </div>
 
-        <button type="submit">ログイン</button>
+        <label class="remember-field">
+            <input
+                type="checkbox"
+                name="remember"
+            >
+            <span>ログイン状態を保持する</span>
+        </label>
+
+        <button type="submit">
+            ログイン
+        </button>
     </form>
 
-    <p>
+    <p class="auth-footer">
         アカウントをお持ちでない方は
-        <a href="/register">会員登録</a>
+        <a href="{{ route('register') }}">
+            会員登録
+        </a>
     </p>
-</body>
-</html>
+@endsection

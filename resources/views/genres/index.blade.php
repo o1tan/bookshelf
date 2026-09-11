@@ -1,104 +1,120 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ジャンル管理 | BookShelf</title>
-</head>
-<body>
+@extends('layouts.app')
 
-    <p>
-        <a href="{{ route('books.index') }}">
-            ← 書籍一覧へ戻る
-        </a>
-    </p>
+@section('title', 'ジャンル管理 | BookShelf')
 
-    <h1>ジャンル管理</h1>
-
-    @if (session('success'))
-        <p>{{ session('success') }}</p>
-    @endif
-
-    @if (session('error'))
-        <p>{{ session('error') }}</p>
-    @endif
-
-    <h2>ジャンル登録</h2>
-
-    <form method="POST" action="{{ route('genres.store') }}">
-        @csrf
-
+@section('content')
+    <div class="page-heading">
         <div>
-            <label for="name">ジャンル名</label>
-
-            <input
-                type="text"
-                id="name"
-                name="name"
-                value="{{ old('name') }}"
-                maxlength="100"
-            >
-
-            @error('name')
-                <p>{{ $message }}</p>
-            @enderror
+            <h1>ジャンル管理</h1>
+            <p class="form-help">
+                書籍に設定するジャンルを管理します。
+            </p>
         </div>
+    </div>
 
-        <button type="submit">
-            登録する
-        </button>
-    </form>
+    <section class="panel">
+        <h2 class="panel-title">ジャンル登録</h2>
 
-    <hr>
+        <form
+            method="POST"
+            action="{{ route('genres.store') }}"
+            class="genre-create-form"
+        >
+            @csrf
 
-    <h2>ジャンル一覧</h2>
+            <div class="form-group">
+                <label for="name">ジャンル名</label>
 
-    @forelse ($genres as $genre)
-        <div>
-            <p>
-                {{ $genre->name }}
-                （使用書籍：{{ $genre->books_count }}冊）
-            </p>
-
-            <p>
-                <a href="{{ route('genres.show', $genre) }}">
-                    このジャンルの書籍を見る
-                </a>
-            </p>
-
-            <p>
-                <a href="{{ route('genres.edit', $genre) }}">
-                    編集
-                </a>
-            </p>
-
-            @if ($genre->books_count === 0)
-                <form
-                    method="POST"
-                    action="{{ route('genres.destroy', $genre) }}"
-                    onsubmit="return confirm('このジャンルを削除しますか？');"
+                <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    value="{{ old('name') }}"
+                    placeholder="例：ミステリー"
+                    required
                 >
-                    @csrf
-                    @method('DELETE')
 
-                    <button type="submit">
-                        削除
-                    </button>
-                </form>
-            @else
-                <p>
-                    使用中のため削除できません。
-                </p>
-            @endif
+                @error('name')
+                    <p class="error-message">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <button type="submit">
+                登録する
+            </button>
+        </form>
+    </section>
+
+    <section class="panel">
+        <div class="panel-heading">
+            <h2 class="panel-title">ジャンル一覧</h2>
+
+            <span class="book-meta">
+                {{ $genres->count() }}件
+            </span>
         </div>
 
-        <hr>
+        <div class="genre-list">
+            @forelse ($genres as $genre)
+                <article class="genre-row">
+                    <div>
+                        <h3>{{ $genre->name }}</h3>
 
-    @empty
-        <p>
-            ジャンルはまだ登録されていません。
-        </p>
-    @endforelse
+                        <p class="book-meta">
+                            使用書籍：{{ $genre->books_count }}冊
+                        </p>
+                    </div>
 
-</body>
-</html>
+                    <div class="actions">
+                        <a
+                            class="button button-secondary"
+                            href="{{ route('genres.show', $genre) }}"
+                        >
+                            書籍を見る
+                        </a>
+
+                        <a
+                            class="button button-secondary"
+                            href="{{ route('genres.edit', $genre) }}"
+                        >
+                            編集
+                        </a>
+
+                        @if ($genre->books_count === 0)
+                            <form
+                                method="POST"
+                                action="{{ route(
+                                    'genres.destroy',
+                                    $genre
+                                ) }}"
+                                onsubmit="
+                                    return confirm(
+                                        'このジャンルを削除しますか？'
+                                    );
+                                "
+                            >
+                                @csrf
+                                @method('DELETE')
+
+                                <button
+                                    type="submit"
+                                    class="button-danger"
+                                >
+                                    削除
+                                </button>
+                            </form>
+                        @else
+                            <span class="genre-in-use">
+                                使用中
+                            </span>
+                        @endif
+                    </div>
+                </article>
+            @empty
+                <p class="empty-text">
+                    ジャンルは登録されていません。
+                </p>
+            @endforelse
+        </div>
+    </section>
+@endsection

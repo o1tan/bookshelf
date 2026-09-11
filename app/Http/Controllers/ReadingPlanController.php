@@ -14,21 +14,28 @@ class ReadingPlanController extends Controller
 {
     public function index(Request $request): View
     {
+        $status = $request->string('status')->toString();
+
+        $allowedStatuses = [
+            ReadingPlan::STATUS_NOT_STARTED,
+            ReadingPlan::STATUS_READING,
+            ReadingPlan::STATUS_COMPLETED,
+            ReadingPlan::STATUS_EXPIRED,
+        ];
+
         $readingPlans = $request->user()
             ->readingPlans()
             ->with('book')
+            ->when(
+                in_array($status, $allowedStatuses, true),
+                fn ($query) => $query->where('status', $status)
+            )
             ->orderBy('deadline')
-            ->get();
-
-        $notifications = $request->user()
-            ->notifications()
-            ->latest()
-            ->take(10)
             ->get();
 
         return view(
             'reading-plans.index',
-            compact('readingPlans', 'notifications')
+            compact('readingPlans', 'status')
         );
     }
 
