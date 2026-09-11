@@ -20,7 +20,16 @@ class ReadingPlanController extends Controller
             ->orderBy('deadline')
             ->get();
 
-        return view('reading-plans.index', compact('readingPlans'));
+        $notifications = $request->user()
+            ->notifications()
+            ->latest()
+            ->take(10)
+            ->get();
+
+        return view(
+            'reading-plans.index',
+            compact('readingPlans', 'notifications')
+        );
     }
 
     public function create(): View

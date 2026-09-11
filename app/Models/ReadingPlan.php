@@ -13,17 +13,20 @@ class ReadingPlan extends Model
     public const STATUS_NOT_STARTED = 'not_started';
     public const STATUS_READING = 'reading';
     public const STATUS_COMPLETED = 'completed';
+    public const STATUS_EXPIRED = 'expired';
 
     protected $fillable = [
         'book_id',
         'deadline',
         'status',
         'reminder_at',
+        'reminded_at',
     ];
 
     protected $casts = [
         'deadline' => 'date',
         'reminder_at' => 'datetime',
+        'reminded_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

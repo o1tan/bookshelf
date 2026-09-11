@@ -22,11 +22,42 @@
         <p>{{ session('success') }}</p>
     @endif
 
+    <h2>リマインダー通知</h2>
+
+    @forelse ($notifications as $notification)
+        <div>
+            <p>
+                {{ $notification->data['message'] ?? '読書計画のお知らせです。' }}
+            </p>
+
+            <p>
+                通知日時：
+                {{ $notification->created_at->format('Y年m月d日 H:i') }}
+            </p>
+
+            @if (isset($notification->data['book_id']))
+                <p>
+                    <a href="{{ route(
+                        'books.show',
+                        $notification->data['book_id']
+                    ) }}">
+                        書籍を確認する
+                    </a>
+                </p>
+            @endif
+        </div>
+
+        <hr>
+    @empty
+        <p>新しい通知はありません。</p>
+    @endforelse
+
     @php
         $statusLabels = [
             'not_started' => '未読',
             'reading' => '読書中',
             'completed' => '読了',
+            'expired' => '期限切れ',
         ];
     @endphp
 
