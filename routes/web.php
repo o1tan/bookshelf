@@ -12,7 +12,10 @@ Route::get('/', [BookController::class, 'index']);
 
 Route::get('/books', [BookController::class, 'index'])
     ->name('books.index');
-    
+
+Route::get('/books/export', [BookController::class, 'export'])
+    ->name('books.export');
+
 Route::get('/books/create', [BookController::class, 'create'])
     ->middleware('auth')
     ->name('books.create');

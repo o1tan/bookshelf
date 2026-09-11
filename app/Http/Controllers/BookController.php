@@ -59,6 +59,79 @@ class BookController extends Controller
         ));
     }
 
+    public function export(Request $request)
+    {
+        $query = Book::with(['user', 'genres'])
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews');
+
+        $keyword = trim((string) $request->input('keyword'));
+
+        if ($keyword !== '') {
+            $query->where(function ($query) use ($keyword) {
+                $query->where('title', 'like', "%{$keyword}%")
+                    ->orWhere('author', 'like', "%{$keyword}%");
+            });
+        }
+
+        $genre = $request->input('genre');
+
+        if ($genre) {
+            $query->whereHas('genres', function ($query) use ($genre) {
+                $query->where('genres.id', $genre);
+            });
+        }
+
+        $sort = $request->input('sort', 'latest');
+
+        match ($sort) {
+            'oldest' => $query->oldest(),
+            'title' => $query->orderBy('title'),
+            'rating' => $query
+                ->orderByRaw('reviews_avg_rating IS NULL')
+                ->orderByDesc('reviews_avg_rating'),
+            default => $query->latest(),
+        };
+
+        $books = $query->get();
+
+        return response()->streamDownload(
+            function () use ($books) {
+                $stream = fopen('php://output', 'w');
+
+                fwrite($stream, "\xEF\xBB\xBF");
+
+                fputcsv($stream, [
+                    'タイトル',
+                    '著者',
+                    'ISBN',
+                    '出版日',
+                    'ジャンル',
+                    '平均評価',
+                    'レビュー件数',
+                    '登録者',
+                ]);
+
+                foreach ($books as $book) {
+                    fputcsv($stream, [
+                        $book->title,
+                        $book->author,
+                        $book->isbn,
+                        $book->published_date?->format('Y-m-d'),
+                        $book->genres->pluck('name')->implode('/'),
+                        $book->reviews_avg_rating,
+                        $book->reviews_count,
+                        $book->user->name,
+                    ]);
+                }
+
+                fclose($stream);
+            },
+            'books_' . now()->format('Ymd') . '.csv',
+            ['Content-Type' => 'text/csv; charset=UTF-8']
+        );
+    }
+
     public function create()
     {
         $genres = Genre::orderBy('name')->get();

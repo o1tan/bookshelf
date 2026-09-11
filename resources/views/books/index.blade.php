@@ -67,6 +67,12 @@
     </form>
 
     <p>
+        <a href="{{ route('books.export', request()->query()) }}">
+            現在の条件でCSV出力
+        </a>
+    </p>
+
+    <p>
         <a href="{{ route('rankings.index') }}">
             書籍ランキングを見る
         </a>

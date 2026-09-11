@@ -302,4 +302,36 @@ class BookTest extends TestCase
             $nextPageUrl
         );
     }
+
+    public function test_books_can_be_exported_to_csv_with_filters(): void
+    {
+        Book::factory()->create([
+            'title' => 'CSV対象書籍',
+            'author' => '対象著者',
+        ]);
+
+        Book::factory()->create([
+            'title' => '出力しない書籍',
+            'author' => '別の著者',
+        ]);
+
+        $response = $this->get(
+            '/books/export?keyword=CSV対象'
+        );
+
+        $response->assertOk()
+            ->assertDownload();
+
+        $csv = $response->streamedContent();
+
+        $this->assertStringContainsString(
+            'CSV対象書籍',
+            $csv
+        );
+
+        $this->assertStringNotContainsString(
+            '出力しない書籍',
+            $csv
+        );
+    }
 }
