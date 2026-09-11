@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Book;
 use App\Models\Genre;
+use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -153,29 +154,29 @@ class BookTest extends TestCase
     }
 
     public function test_books_can_be_searched_by_title_or_author(): void
-{
-    Book::factory()->create([
-        'title' => 'Laravel入門',
-        'author' => '山田太郎',
-    ]);
+    {
+        Book::factory()->create([
+            'title' => 'Laravel入門',
+            'author' => '山田太郎',
+        ]);
 
-    Book::factory()->create([
-        'title' => 'PHP実践',
-        'author' => 'Laravel研究会',
-    ]);
+        Book::factory()->create([
+            'title' => 'PHP実践',
+            'author' => 'Laravel研究会',
+        ]);
 
-    Book::factory()->create([
-        'title' => 'JavaScript入門',
-        'author' => '佐藤花子',
-    ]);
+        Book::factory()->create([
+            'title' => 'JavaScript入門',
+            'author' => '佐藤花子',
+        ]);
 
-    $response = $this->get('/books?keyword=Laravel');
+        $response = $this->get('/books?keyword=Laravel');
 
-    $response->assertOk()
-        ->assertSee('Laravel入門')
-        ->assertSee('PHP実践')
-        ->assertDontSee('JavaScript入門');
-    }
+        $response->assertOk()
+            ->assertSee('Laravel入門')
+            ->assertSee('PHP実践')
+            ->assertDontSee('JavaScript入門');
+        }
 
     public function test_books_can_be_filtered_by_genre(): void
     {
@@ -205,5 +206,100 @@ class BookTest extends TestCase
         $response->assertOk()
             ->assertSee('表示される技術書')
             ->assertDontSee('表示されない小説');
+    }
+
+    public function test_books_can_be_sorted_by_oldest_and_title(): void
+    {
+        $olderBook = Book::factory()->create([
+            'title' => 'Zの本',
+            'created_at' => now()->subDay(),
+        ]);
+
+        $newerBook = Book::factory()->create([
+            'title' => 'Aの本',
+            'created_at' => now(),
+        ]);
+
+        $oldestResponse = $this->get('/books?sort=oldest');
+
+        $oldestIds = $oldestResponse
+            ->viewData('books')
+            ->getCollection()
+            ->pluck('id')
+            ->all();
+
+        $this->assertSame([
+            $olderBook->id,
+            $newerBook->id,
+        ], $oldestIds);
+
+        $titleResponse = $this->get('/books?sort=title');
+
+        $titleIds = $titleResponse
+            ->viewData('books')
+            ->getCollection()
+            ->pluck('id')
+            ->all();
+
+        $this->assertSame([
+            $newerBook->id,
+            $olderBook->id,
+        ], $titleIds);
+    }
+
+    public function test_books_can_be_sorted_by_rating_with_unrated_last(): void
+    {
+        $highBook = Book::factory()->create();
+        $lowBook = Book::factory()->create();
+        $unratedBook = Book::factory()->create();
+
+        Review::factory()->create([
+            'book_id' => $highBook->id,
+            'rating' => 5,
+        ]);
+
+        Review::factory()->create([
+            'book_id' => $lowBook->id,
+            'rating' => 3,
+        ]);
+
+        $response = $this->get('/books?sort=rating');
+
+        $bookIds = $response
+            ->viewData('books')
+            ->getCollection()
+            ->pluck('id')
+            ->all();
+
+        $this->assertSame([
+            $highBook->id,
+            $lowBook->id,
+            $unratedBook->id,
+        ], $bookIds);
+    }
+
+    public function test_pagination_keeps_search_conditions(): void
+    {
+        Book::factory()->count(11)->create([
+            'title' => 'Laravel Book',
+        ]);
+
+        $response = $this->get(
+            '/books?keyword=Laravel&sort=title'
+        );
+
+        $nextPageUrl = $response
+            ->viewData('books')
+            ->nextPageUrl();
+
+        $this->assertStringContainsString(
+            'keyword=Laravel',
+            $nextPageUrl
+        );
+
+        $this->assertStringContainsString(
+            'sort=title',
+            $nextPageUrl
+        );
     }
 }

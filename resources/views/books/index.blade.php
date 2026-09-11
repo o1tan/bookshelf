@@ -41,6 +41,24 @@
             </select>
         </div>
 
+        <div>
+            <label for="sort">並び順</label>
+            <select id="sort" name="sort">
+                <option value="latest" @selected($sort === 'latest')>
+                    新着順
+                </option>
+                <option value="oldest" @selected($sort === 'oldest')>
+                    古い順
+                </option>
+                <option value="title" @selected($sort === 'title')>
+                    タイトル順
+                </option>
+                <option value="rating" @selected($sort === 'rating')>
+                    評価が高い順
+                </option>
+            </select>
+        </div>
+
         <button type="submit">検索する</button>
 
         <a href="{{ route('books.index') }}">
