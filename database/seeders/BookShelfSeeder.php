@@ -48,7 +48,7 @@ class BookShelfSeeder extends Seeder
             $user = $users->random();
             $book = $books->random();
 
-            $key = $user->id . '-' . $book->id;
+            $key = $user->id.'-'.$book->id;
 
             if (! $reviewPairs->has($key)) {
                 $reviewPairs->put($key, [

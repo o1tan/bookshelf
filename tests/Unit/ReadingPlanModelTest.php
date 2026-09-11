@@ -13,7 +13,7 @@ class ReadingPlanModelTest extends TestCase
 {
     public function test_reading_plan_belongs_to_user(): void
     {
-        $readingPlan = new ReadingPlan();
+        $readingPlan = new ReadingPlan;
 
         $relation = $readingPlan->user();
 
@@ -23,7 +23,7 @@ class ReadingPlanModelTest extends TestCase
 
     public function test_reading_plan_belongs_to_book(): void
     {
-        $readingPlan = new ReadingPlan();
+        $readingPlan = new ReadingPlan;
 
         $relation = $readingPlan->book();
 

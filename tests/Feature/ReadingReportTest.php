@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\Genre;
 use App\Models\ReadingPlan;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\Genre;
 
 class ReadingReportTest extends TestCase
 {
@@ -121,16 +121,14 @@ class ReadingReportTest extends TestCase
 
         $response->assertViewHas(
             'favoriteGenres',
-            fn ($genres) =>
-                $genres->count() === 2
+            fn ($genres) => $genres->count() === 2
                 && $genres->first()['genre']->is($mystery)
                 && $genres->first()['count'] === 2
         );
 
         $response->assertViewHas(
             'highRatedReviews',
-            fn ($reviews) =>
-                $reviews->count() === 2
+            fn ($reviews) => $reviews->count() === 2
                 && $reviews->first()->is($highRatedReview)
         );
 

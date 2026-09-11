@@ -127,7 +127,7 @@ class BookController extends Controller
 
                 fclose($stream);
             },
-            'books_' . now()->format('Ymd') . '.csv',
+            'books_'.now()->format('Ymd').'.csv',
             ['Content-Type' => 'text/csv; charset=UTF-8']
         );
     }

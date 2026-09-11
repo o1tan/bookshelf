@@ -176,7 +176,7 @@ class BookTest extends TestCase
             ->assertSee('Laravel入門')
             ->assertSee('PHP実践')
             ->assertDontSee('JavaScript入門');
-        }
+    }
 
     public function test_books_can_be_filtered_by_genre(): void
     {

@@ -74,7 +74,7 @@ class NotificationTest extends TestCase
             ->assertSee('新しい通知はありません。');
     }
 
-        public function test_notifications_are_paginated(): void
+    public function test_notifications_are_paginated(): void
     {
         $user = User::factory()->create();
 

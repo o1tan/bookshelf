@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreReviewRequest;
+use App\Http\Requests\UpdateReviewRequest;
 use App\Models\Book;
 use App\Models\Review;
-use App\Http\Requests\UpdateReviewRequest;
 
 class ReviewController extends Controller
 {
-
     public function store(StoreReviewRequest $request, Book $book)
     {
         if (Review::where('user_id', $request->user()->id)
@@ -68,5 +67,4 @@ class ReviewController extends Controller
             ->route('books.show', $book)
             ->with('success', 'レビューを削除しました。');
     }
-
 }

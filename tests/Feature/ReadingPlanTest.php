@@ -132,7 +132,7 @@ class ReadingPlanTest extends TestCase
         ]);
     }
 
-        public function test_user_cannot_create_duplicate_plan_for_same_book(): void
+    public function test_user_cannot_create_duplicate_plan_for_same_book(): void
     {
         $user = User::factory()->create();
         $book = Book::factory()->create();

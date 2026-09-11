@@ -11,8 +11,11 @@ class ReadingPlan extends Model
     use HasFactory;
 
     public const STATUS_NOT_STARTED = 'not_started';
+
     public const STATUS_READING = 'reading';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_EXPIRED = 'expired';
 
     protected $fillable = [
