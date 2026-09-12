@@ -24,12 +24,14 @@ class ReadingPlan extends Model
         'status',
         'reminder_at',
         'reminded_at',
+        'completed_at',
     ];
 
     protected $casts = [
         'deadline' => 'date',
         'reminder_at' => 'datetime',
         'reminded_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

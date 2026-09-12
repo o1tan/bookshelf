@@ -133,15 +133,17 @@
                             </form>
                         @endif
 
-                        <a
-                            class="button button-secondary"
-                            href="{{ route(
-                                'reading-plans.edit',
-                                $readingPlan
-                            ) }}"
-                        >
-                            編集
-                        </a>
+                        @if ($readingPlan->status !== 'completed')
+                            <a
+                                class="button button-secondary"
+                                href="{{ route(
+                                    'reading-plans.edit',
+                                    $readingPlan
+                                ) }}"
+                            >
+                                編集
+                            </a>
+                        @endif
 
                         <form
                             method="POST"

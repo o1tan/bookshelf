@@ -158,4 +158,29 @@ class NotificationTest extends TestCase
             $notification->fresh()->read_at
         );
     }
+
+    public function test_deleting_reading_plan_deletes_related_notifications(): void
+    {
+        $user = User::factory()->create();
+        $readingPlan = ReadingPlan::factory()->create([
+            'user_id' => $user->id,
+        ]);
+
+        $user->notify(
+            new ReadingPlanReminderNotification(
+                $readingPlan->load('book')
+            )
+        );
+
+        $notification = $user->notifications()->first();
+
+        $this
+            ->actingAs($user)
+            ->delete("/reading-plans/{$readingPlan->id}")
+            ->assertRedirect('/reading-plans');
+
+        $this->assertDatabaseMissing('notifications', [
+            'id' => $notification->id,
+        ]);
+    }
 }

@@ -69,6 +69,11 @@ class ReadingPlanController extends Controller
             403
         );
 
+        abort_if(
+            $readingPlan->status === ReadingPlan::STATUS_COMPLETED,
+            403
+        );
+
         $readingPlan->load('book');
 
         return view(
@@ -81,6 +86,10 @@ class ReadingPlanController extends Controller
         UpdateReadingPlanRequest $request,
         ReadingPlan $readingPlan
     ): RedirectResponse {
+        abort_if(
+            $readingPlan->status === ReadingPlan::STATUS_COMPLETED,
+            403
+        );
         $readingPlan->update($request->validated());
 
         return redirect()
@@ -99,6 +108,7 @@ class ReadingPlanController extends Controller
 
         $readingPlan->update([
             'status' => ReadingPlan::STATUS_COMPLETED,
+            'completed_at' => now(),
         ]);
 
         return redirect()
@@ -114,6 +124,14 @@ class ReadingPlanController extends Controller
             $request->user()->id === $readingPlan->user_id,
             403
         );
+
+        $request->user()
+            ->notifications()
+            ->where(
+                'data->reading_plan_id',
+                $readingPlan->id
+            )
+            ->delete();
 
         $readingPlan->delete();
 

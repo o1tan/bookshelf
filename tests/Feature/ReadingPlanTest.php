@@ -14,9 +14,8 @@ class ReadingPlanTest extends TestCase
 
     public function test_guest_cannot_access_reading_plans(): void
     {
-        $response = $this->get('/reading-plans');
-
-        $response->assertRedirect('/login');
+        $this->get('/reading-plans')
+            ->assertRedirect('/login');
     }
 
     public function test_user_can_create_reading_plan(): void
@@ -59,9 +58,9 @@ class ReadingPlanTest extends TestCase
             ->actingAs($user)
             ->get('/reading-plans');
 
-        $response->assertOk();
-        $response->assertSee($ownPlan->book->title);
-        $response->assertDontSee($otherPlan->book->title);
+        $response->assertOk()
+            ->assertSee($ownPlan->book->title)
+            ->assertDontSee($otherPlan->book->title);
     }
 
     public function test_user_can_update_own_reading_plan(): void
@@ -108,6 +107,35 @@ class ReadingPlanTest extends TestCase
             'id' => $readingPlan->id,
             'status' => ReadingPlan::STATUS_COMPLETED,
         ]);
+
+        $this->assertNotNull(
+            $readingPlan->fresh()->completed_at
+        );
+    }
+
+    public function test_completed_reading_plan_cannot_be_edited_or_updated(): void
+    {
+        $user = User::factory()->create();
+
+        $readingPlan = ReadingPlan::factory()->create([
+            'user_id' => $user->id,
+            'status' => ReadingPlan::STATUS_COMPLETED,
+            'completed_at' => now(),
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->get("/reading-plans/{$readingPlan->id}/edit")
+            ->assertForbidden();
+
+        $this
+            ->actingAs($user)
+            ->put("/reading-plans/{$readingPlan->id}", [
+                'deadline' => now()->addDays(7)->format('Y-m-d'),
+                'status' => ReadingPlan::STATUS_READING,
+                'reminder_at' => null,
+            ])
+            ->assertForbidden();
     }
 
     public function test_user_cannot_complete_another_users_plan(): void

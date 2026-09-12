@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexApiBookRequest;
 use App\Http\Requests\StoreApiBookRequest;
 use App\Http\Requests\UpdateApiBookRequest;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 class BookController extends Controller
 {
-    public function index(Request $request)
+    public function index(IndexApiBookRequest $request)
     {
         $perPage = max(
             1,
@@ -33,8 +33,8 @@ class BookController extends Controller
             });
         }
 
-        if ($request->filled('genre')) {
-            $genreId = $request->integer('genre');
+        if ($request->filled('genre_id')) {
+            $genreId = $request->integer('genre_id');
 
             $query->whereHas('genres', function ($query) use ($genreId) {
                 $query->where('genres.id', $genreId);

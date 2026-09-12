@@ -301,7 +301,7 @@ class BookApiTest extends TestCase
         $outsideGenreBook->genres()->attach($otherGenre);
 
         $response = $this->getJson(
-            "/api/v1/books?keyword=Laravel&genre={$genre->id}"
+            "/api/v1/books?keyword=Laravel&genre_id={$genre->id}"
         );
 
         $response->assertOk()
@@ -319,5 +319,18 @@ class BookApiTest extends TestCase
         ])->sort()->values()->all();
 
         $this->assertSame($expectedIds, $bookIds);
+    }
+
+    public function test_book_index_validates_search_parameters(): void
+    {
+        $response = $this->getJson('/api/v1/books?genre_id=999999');
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('genre_id');
+
+        $response = $this->getJson('/api/v1/books?per_page=101');
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('per_page');
     }
 }
