@@ -90,7 +90,14 @@ class ReadingPlanController extends Controller
             $readingPlan->status === ReadingPlan::STATUS_COMPLETED,
             403
         );
-        $readingPlan->update($request->validated());
+        $validated = $request->validated();
+
+        if ($readingPlan->status === ReadingPlan::STATUS_EXPIRED) {
+            $validated['status'] = ReadingPlan::STATUS_NOT_STARTED;
+            $validated['reminded_at'] = null;
+        }
+
+        $readingPlan->update($validated);
 
         return redirect()
             ->route('reading-plans.index')

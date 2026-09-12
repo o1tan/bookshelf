@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\ReadingPlan;
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -20,8 +21,15 @@ class StoreReadingPlanRequest extends FormRequest
                 'required',
                 'integer',
                 'exists:books,id',
-                Rule::unique('reading_plans')
-                    ->where('user_id', $this->user()->id),
+                Rule::unique('reading_plans', 'book_id')
+                    ->where(function ($query) {
+                        $query
+                            ->where('user_id', $this->user()->id)
+                            ->whereIn('status', [
+                                ReadingPlan::STATUS_NOT_STARTED,
+                                ReadingPlan::STATUS_READING,
+                            ]);
+                    }),
             ],
             'deadline' => [
                 'required',
@@ -33,14 +41,28 @@ class StoreReadingPlanRequest extends FormRequest
                 Rule::in([
                     ReadingPlan::STATUS_NOT_STARTED,
                     ReadingPlan::STATUS_READING,
-                    ReadingPlan::STATUS_COMPLETED,
                 ]),
             ],
             'reminder_at' => [
                 'nullable',
                 'date',
                 'after:now',
-                'before_or_equal:deadline',
+                function ($attribute, $value, $fail) {
+                    if (! $this->filled('deadline')) {
+                        return;
+                    }
+
+                    $reminderAt = Carbon::parse($value);
+                    $deadlineEnd = Carbon::parse(
+                        $this->input('deadline')
+                    )->endOfDay();
+
+                    if ($reminderAt->greaterThan($deadlineEnd)) {
+                        $fail(
+                            '通知日時は読了期限当日までに設定してください。'
+                        );
+                    }
+                },
             ],
         ];
     }

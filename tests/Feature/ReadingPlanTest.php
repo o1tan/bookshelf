@@ -210,6 +210,7 @@ class ReadingPlanTest extends TestCase
         ReadingPlan::factory()->create([
             'user_id' => $user->id,
             'book_id' => $book->id,
+            'status' => ReadingPlan::STATUS_NOT_STARTED,
         ]);
 
         $response = $this

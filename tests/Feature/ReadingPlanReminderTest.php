@@ -94,4 +94,52 @@ class ReadingPlanReminderTest extends TestCase
 
         Notification::assertNothingSent();
     }
+
+    public function test_command_sends_reminder_on_deadline_day(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+
+        ReadingPlan::factory()->create([
+            'user_id' => $user->id,
+            'deadline' => today(),
+            'status' => ReadingPlan::STATUS_READING,
+            'reminder_at' => now()->subMinute(),
+            'reminded_at' => null,
+        ]);
+
+        $this->artisan('reading-plans:process')
+            ->assertSuccessful();
+
+        Notification::assertSentTo(
+            $user,
+            ReadingPlanReminderNotification::class
+        );
+    }
+
+    public function test_command_does_not_send_reminder_after_deadline(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+
+        $readingPlan = ReadingPlan::factory()->create([
+            'user_id' => $user->id,
+            'deadline' => today()->subDay(),
+            'status' => ReadingPlan::STATUS_READING,
+            'reminder_at' => now()->subMinute(),
+            'reminded_at' => null,
+        ]);
+
+        $this->artisan('reading-plans:process')
+            ->assertSuccessful();
+
+        $this->assertDatabaseHas('reading_plans', [
+            'id' => $readingPlan->id,
+            'status' => ReadingPlan::STATUS_EXPIRED,
+        ]);
+
+        Notification::assertNothingSent();
+    }
 }
