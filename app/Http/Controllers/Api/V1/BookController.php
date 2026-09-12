@@ -20,11 +20,30 @@ class BookController extends Controller
             min($request->integer('per_page', 20), 100)
         );
 
-        $books = Book::with('genres')
+        $query = Book::with('genres')
             ->withAvg('reviews', 'rating')
-            ->withCount('reviews')
-            ->latest()
-            ->paginate($perPage);
+            ->withCount('reviews');
+
+        if ($request->filled('keyword')) {
+            $keyword = trim($request->string('keyword')->toString());
+
+            $query->where(function ($query) use ($keyword) {
+                $query->where('title', 'like', "%{$keyword}%")
+                    ->orWhere('author', 'like', "%{$keyword}%");
+            });
+        }
+
+        if ($request->filled('genre')) {
+            $genreId = $request->integer('genre');
+
+            $query->whereHas('genres', function ($query) use ($genreId) {
+                $query->where('genres.id', $genreId);
+            });
+        }
+
+        $books = $query->latest()
+            ->paginate($perPage)
+            ->withQueryString();
 
         return BookResource::collection($books);
     }

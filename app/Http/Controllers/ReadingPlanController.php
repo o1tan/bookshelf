@@ -88,6 +88,24 @@ class ReadingPlanController extends Controller
             ->with('success', '読書計画を更新しました。');
     }
 
+    public function complete(
+        Request $request,
+        ReadingPlan $readingPlan
+    ): RedirectResponse {
+        abort_unless(
+            $request->user()->id === $readingPlan->user_id,
+            403
+        );
+
+        $readingPlan->update([
+            'status' => ReadingPlan::STATUS_COMPLETED,
+        ]);
+
+        return redirect()
+            ->route('reading-plans.index')
+            ->with('success', '読書計画を読了にしました。');
+    }
+
     public function destroy(
         Request $request,
         ReadingPlan $readingPlan

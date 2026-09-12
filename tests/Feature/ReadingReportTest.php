@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Book;
 use App\Models\Genre;
 use App\Models\ReadingPlan;
 use App\Models\Review;
@@ -15,124 +16,78 @@ class ReadingReportTest extends TestCase
 
     public function test_guest_cannot_view_reading_report(): void
     {
-        $response = $this->get('/reading-report');
-
-        $response->assertRedirect('/login');
+        $this->get('/reports')
+            ->assertRedirect('/login');
     }
 
     public function test_user_can_view_own_reading_report(): void
     {
         $user = User::factory()->create();
-        $otherUser = User::factory()->create();
+        $book = Book::factory()->create();
 
         ReadingPlan::factory()->create([
             'user_id' => $user->id,
-            'status' => ReadingPlan::STATUS_NOT_STARTED,
-        ]);
-
-        ReadingPlan::factory()->create([
-            'user_id' => $user->id,
-            'status' => ReadingPlan::STATUS_READING,
-        ]);
-
-        ReadingPlan::factory()->create([
-            'user_id' => $user->id,
-            'status' => ReadingPlan::STATUS_COMPLETED,
-        ]);
-
-        ReadingPlan::factory()->create([
-            'user_id' => $otherUser->id,
+            'book_id' => $book->id,
             'status' => ReadingPlan::STATUS_COMPLETED,
         ]);
 
         Review::factory()->create([
             'user_id' => $user->id,
-            'rating' => 5,
-        ]);
-
-        Review::factory()->create([
-            'user_id' => $user->id,
+            'book_id' => $book->id,
             'rating' => 4,
         ]);
 
-        Review::factory()->create([
-            'user_id' => $otherUser->id,
-            'rating' => 1,
-        ]);
+        $response = $this->actingAs($user)->get('/reports');
 
-        $response = $this
-            ->actingAs($user)
-            ->get('/reading-report');
-
-        $response->assertOk();
-
-        $response->assertViewHas('statusCounts', [
-            'not_started' => 1,
-            'reading' => 1,
-            'completed' => 1,
-        ]);
-
-        $response->assertViewHas('reviewCount', 2);
-        $response->assertViewHas('averageRating', 4.5);
+        $response->assertOk()
+            ->assertViewHas('reviewCount', 1)
+            ->assertViewHas('completedBookCount', 1)
+            ->assertViewHas('averageRating', 4.0)
+            ->assertViewHas(
+                'ratingDistribution',
+                fn ($distribution) => $distribution->get(4) === 1
+            );
     }
 
-    public function test_favorite_genres_and_high_rated_books_are_aggregated(): void
+    public function test_report_aggregates_high_rated_books_and_genre_trends(): void
     {
         $user = User::factory()->create();
-        $otherUser = User::factory()->create();
-
-        $mystery = Genre::factory()->create([
-            'name' => 'ミステリー',
+        $genre = Genre::factory()->create([
+            'name' => '技術書',
         ]);
 
-        $fantasy = Genre::factory()->create([
-            'name' => 'ファンタジー',
-        ]);
+        $highRatedBook = Book::factory()->create();
+        $lowRatedBook = Book::factory()->create();
 
-        $highRatedReview = Review::factory()->create([
+        $highRatedBook->genres()->attach($genre);
+        $lowRatedBook->genres()->attach($genre);
+
+        Review::factory()->create([
             'user_id' => $user->id,
+            'book_id' => $highRatedBook->id,
             'rating' => 5,
         ]);
 
-        $middleRatedReview = Review::factory()->create([
+        Review::factory()->create([
             'user_id' => $user->id,
+            'book_id' => $lowRatedBook->id,
             'rating' => 3,
         ]);
 
-        $highRatedReview->book->genres()->attach([
-            $mystery->id,
-            $fantasy->id,
-        ]);
+        $response = $this->actingAs($user)->get('/reports');
 
-        $middleRatedReview->book->genres()->attach($mystery->id);
-
-        $otherReview = Review::factory()->create([
-            'user_id' => $otherUser->id,
-            'rating' => 1,
-        ]);
-
-        $otherReview->book->genres()->attach($fantasy->id);
-
-        $response = $this
-            ->actingAs($user)
-            ->get('/reading-report');
-
-        $response->assertOk();
-
-        $response->assertViewHas(
-            'favoriteGenres',
-            fn ($genres) => $genres->count() === 2
-                && $genres->first()['genre']->is($mystery)
-                && $genres->first()['count'] === 2
-        );
-
-        $response->assertViewHas(
-            'highRatedReviews',
-            fn ($reviews) => $reviews->count() === 2
-                && $reviews->first()->is($highRatedReview)
-        );
-
-        $response->assertSee('ミステリー');
-        $response->assertSee($highRatedReview->book->title);
+        $response->assertOk()
+            ->assertViewHas(
+                'highRatedReviews',
+                fn ($reviews) => $reviews->count() === 1
+                    && $reviews->first()->is($highRatedBook->reviews->first())
+            )
+            ->assertViewHas(
+                'genreRatingTrends',
+                fn ($trends) => $trends->count() === 1
+                    && $trends->first()['genre']->is($genre)
+                    && (float) $trends->first()['average_rating'] === 4.0
+                    && $trends->first()['count'] === 2
+            );
     }
 }

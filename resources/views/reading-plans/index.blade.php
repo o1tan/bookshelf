@@ -109,6 +109,30 @@
                     </div>
 
                     <div class="actions">
+                        @if ($readingPlan->status !== 'completed')
+                            <form
+                                method="POST"
+                                action="{{ route(
+                                    'reading-plans.complete',
+                                    $readingPlan
+                                ) }}"
+                                onsubmit="
+                                    return confirm(
+                                        'この読書計画を読了にしますか？'
+                                    );
+                                "
+                            >
+                                @csrf
+
+                                <button
+                                    type="submit"
+                                    class="button"
+                                >
+                                    読了する
+                                </button>
+                            </form>
+                        @endif
+
                         <a
                             class="button button-secondary"
                             href="{{ route(

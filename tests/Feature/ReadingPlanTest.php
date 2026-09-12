@@ -89,6 +89,48 @@ class ReadingPlanTest extends TestCase
         ]);
     }
 
+    public function test_user_can_complete_own_reading_plan(): void
+    {
+        $user = User::factory()->create();
+
+        $readingPlan = ReadingPlan::factory()->create([
+            'user_id' => $user->id,
+            'status' => ReadingPlan::STATUS_READING,
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->post("/reading-plans/{$readingPlan->id}/complete");
+
+        $response->assertRedirect('/reading-plans');
+
+        $this->assertDatabaseHas('reading_plans', [
+            'id' => $readingPlan->id,
+            'status' => ReadingPlan::STATUS_COMPLETED,
+        ]);
+    }
+
+    public function test_user_cannot_complete_another_users_plan(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        $readingPlan = ReadingPlan::factory()->create([
+            'user_id' => $otherUser->id,
+            'status' => ReadingPlan::STATUS_READING,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->post("/reading-plans/{$readingPlan->id}/complete")
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('reading_plans', [
+            'id' => $readingPlan->id,
+            'status' => ReadingPlan::STATUS_READING,
+        ]);
+    }
+
     public function test_user_cannot_edit_or_update_another_users_plan(): void
     {
         $user = User::factory()->create();

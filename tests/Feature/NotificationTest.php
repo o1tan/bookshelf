@@ -107,4 +107,55 @@ class NotificationTest extends TestCase
         $this->assertSame(11, $notifications->total());
         $this->assertCount(1, $notifications->items());
     }
+
+    public function test_user_can_mark_own_notification_as_read(): void
+    {
+        $user = User::factory()->create();
+        $readingPlan = ReadingPlan::factory()->create([
+            'user_id' => $user->id,
+        ]);
+
+        $user->notify(
+            new ReadingPlanReminderNotification(
+                $readingPlan->load('book')
+            )
+        );
+
+        $notification = $user->notifications()->first();
+
+        $this
+            ->actingAs($user)
+            ->post("/notifications/{$notification->id}/read")
+            ->assertRedirect('/notifications');
+
+        $this->assertNotNull(
+            $notification->fresh()->read_at
+        );
+    }
+
+    public function test_user_cannot_mark_another_users_notification_as_read(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $readingPlan = ReadingPlan::factory()->create([
+            'user_id' => $otherUser->id,
+        ]);
+
+        $otherUser->notify(
+            new ReadingPlanReminderNotification(
+                $readingPlan->load('book')
+            )
+        );
+
+        $notification = $otherUser->notifications()->first();
+
+        $this
+            ->actingAs($user)
+            ->post("/notifications/{$notification->id}/read")
+            ->assertForbidden();
+
+        $this->assertNull(
+            $notification->fresh()->read_at
+        );
+    }
 }

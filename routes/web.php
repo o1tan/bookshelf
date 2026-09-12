@@ -63,11 +63,11 @@ Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])
     ->middleware('auth')
     ->name('reviews.destroy');
 
-Route::post('/books/{book}/favorite', [FavoriteController::class, 'store'])
+Route::post('/books/{book}/favorites', [FavoriteController::class, 'store'])
     ->middleware('auth')
     ->name('favorites.store');
 
-Route::delete('/books/{book}/favorite', [FavoriteController::class, 'destroy'])
+Route::delete('/books/{book}/favorites', [FavoriteController::class, 'destroy'])
     ->middleware('auth')
     ->name('favorites.destroy');
 
@@ -107,10 +107,10 @@ Route::delete('/genres/{genre}', [GenreController::class, 'destroy'])
     ->middleware('auth')
     ->name('genres.destroy');
 
-Route::get('/rankings', RankingController::class)
+Route::get('/ranking', RankingController::class)
     ->name('rankings.index');
 
-Route::get('/reading-report', ReadingReportController::class)
+Route::get('/reports', ReadingReportController::class)
     ->middleware('auth')
     ->name('reports.index');
 
@@ -121,3 +121,17 @@ Route::resource('reading-plans', ReadingPlanController::class)
 Route::get('/notifications', NotificationController::class)
     ->middleware('auth')
     ->name('notifications.index');
+
+Route::post(
+    '/notifications/{notificationId}/read',
+    [NotificationController::class, 'markAsRead']
+)
+    ->middleware('auth')
+    ->name('notifications.read');
+
+Route::post(
+    '/reading-plans/{reading_plan}/complete',
+    [ReadingPlanController::class, 'complete']
+)
+    ->middleware('auth')
+    ->name('reading-plans.complete');

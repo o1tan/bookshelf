@@ -13,7 +13,7 @@ class RankingTest extends TestCase
 
     public function test_ranking_page_is_publicly_accessible(): void
     {
-        $response = $this->get('/rankings');
+        $response = $this->get('/ranking');
 
         $response->assertStatus(200);
     }
@@ -56,7 +56,7 @@ class RankingTest extends TestCase
             'rating' => 4,
         ]);
 
-        $response = $this->get('/rankings');
+        $response = $this->get('/ranking');
 
         $response->assertStatus(200);
 

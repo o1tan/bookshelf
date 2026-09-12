@@ -41,15 +41,34 @@
                             書籍を見る
                         </a>
                     @endif
+
+                    @if (is_null($notification->read_at))
+                        <form
+                            method="POST"
+                            action="{{ route(
+                                'notifications.read',
+                                $notification->id
+                            ) }}"
+                        >
+                            @csrf
+
+                            <button
+                                type="submit"
+                                class="button"
+                            >
+                                既読にする
+                            </button>
+                        </form>
+                    @endif
                 </article>
             @endforeach
         </div>
 
-            <x-pagination :paginator="$notifications" />
-            @else
-                <section class="panel empty-state notification-empty">
-                    <div class="notification-empty-icon">🔔</div>
-                    <p>新しい通知はありません。</p>
-                </section>
-            @endif
-        @endsection
+        <x-pagination :paginator="$notifications" />
+    @else
+        <section class="panel empty-state notification-empty">
+            <div class="notification-empty-icon">🔔</div>
+            <p>新しい通知はありません。</p>
+        </section>
+    @endif
+@endsection

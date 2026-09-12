@@ -12,53 +12,53 @@ class ReadingReportController extends Controller
     {
         $user = $request->user();
 
-        $readingPlans = $user->readingPlans()
-            ->with('book')
-            ->orderBy('deadline')
-            ->get();
-
-        $statusCounts = [
-            'not_started' => $readingPlans
-                ->where('status', ReadingPlan::STATUS_NOT_STARTED)
-                ->count(),
-            'reading' => $readingPlans
-                ->where('status', ReadingPlan::STATUS_READING)
-                ->count(),
-            'completed' => $readingPlans
-                ->where('status', ReadingPlan::STATUS_COMPLETED)
-                ->count(),
-        ];
-
         $reviews = $user->reviews()
             ->with('book.genres')
             ->get();
 
         $reviewCount = $reviews->count();
+        $completedBookCount = $user->readingPlans()
+            ->where('status', ReadingPlan::STATUS_COMPLETED)
+            ->distinct('book_id')
+            ->count('book_id');
+
         $averageRating = $reviews->avg('rating');
 
-        $favoriteGenres = $reviews
-            ->flatMap(fn ($review) => $review->book->genres)
-            ->groupBy('id')
-            ->map(fn ($genres) => [
-                'genre' => $genres->first(),
-                'count' => $genres->count(),
-            ])
-            ->sortByDesc('count')
-            ->take(5)
-            ->values();
+        $ratingDistribution = collect(range(1, 5))
+            ->mapWithKeys(fn (int $rating) => [
+                $rating => $reviews->where('rating', $rating)->count(),
+            ]);
 
         $highRatedReviews = $reviews
+            ->filter(fn ($review) => $review->rating >= 4)
             ->sortByDesc('rating')
             ->take(5)
             ->values();
 
+        $genreRatingTrends = $reviews
+            ->flatMap(fn ($review) => $review->book->genres->map(
+                fn ($genre) => [
+                    'genre' => $genre,
+                    'rating' => $review->rating,
+                ]
+            ))
+            ->groupBy(fn (array $item) => $item['genre']->id)
+            ->map(fn ($items) => [
+                'genre' => $items->first()['genre'],
+                'average_rating' => $items->avg('rating'),
+                'count' => $items->count(),
+            ])
+            ->sortByDesc('average_rating')
+            ->take(5)
+            ->values();
+
         return view('reading-reports.show', compact(
-            'readingPlans',
-            'statusCounts',
             'reviewCount',
+            'completedBookCount',
             'averageRating',
-            'favoriteGenres',
-            'highRatedReviews'
+            'ratingDistribution',
+            'highRatedReviews',
+            'genreRatingTrends'
         ));
     }
 }

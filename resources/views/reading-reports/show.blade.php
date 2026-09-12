@@ -14,14 +14,14 @@
     <div class="report-stats">
         <article class="panel report-stat">
             <strong class="report-number report-number-blue">
-                {{ $readingPlans->count() }}
+                {{ $reviewCount }}
             </strong>
-            <span>読書計画</span>
+            <span>総レビュー数</span>
         </article>
 
         <article class="panel report-stat">
             <strong class="report-number report-number-green">
-                {{ $statusCounts['completed'] }}
+                {{ $completedBookCount }}
             </strong>
             <span>読了冊数</span>
         </article>
@@ -38,45 +38,35 @@
 
     <div class="report-grid">
         <section class="panel">
-            <h2 class="panel-title">好きなジャンル</h2>
+            <h2 class="panel-title">評価分布</h2>
 
             @php
-                $maxGenreCount = $favoriteGenres->max('count') ?: 1;
+                $maxRatingCount = $ratingDistribution->max() ?: 1;
             @endphp
 
             <div class="genre-ranking">
-                @forelse ($favoriteGenres as $index => $favoriteGenre)
+                @foreach ($ratingDistribution as $rating => $count)
                     <div class="genre-rank-row">
                         <span class="genre-rank-number">
-                            {{ $index + 1 }}
+                            {{ $rating }}★
                         </span>
 
                         <div class="genre-rank-content">
                             <div class="genre-rank-label">
-                                <span>
-                                    {{ $favoriteGenre['genre']->name }}
-                                </span>
-
-                                <span>
-                                    {{ $favoriteGenre['count'] }}冊
-                                </span>
+                                <span>{{ $rating }}点</span>
+                                <span>{{ $count }}件</span>
                             </div>
 
                             <div class="genre-bar">
                                 <span
                                     style="width: {{
-                                        ($favoriteGenre['count']
-                                        / $maxGenreCount) * 100
+                                        ($count / $maxRatingCount) * 100
                                     }}%;"
                                 ></span>
                             </div>
                         </div>
                     </div>
-                @empty
-                    <p class="empty-text">
-                        集計できるジャンルはありません。
-                    </p>
-                @endforelse
+                @endforeach
             </div>
         </section>
 
@@ -89,9 +79,7 @@
                         class="top-book-row"
                         href="{{ route('books.show', $review->book) }}"
                     >
-                        <span class="rank-circle">
-                            {{ $index + 1 }}
-                        </span>
+                        <span class="rank-circle">{{ $index + 1 }}</span>
 
                         <span class="top-book-info">
                             <strong>{{ $review->book->title }}</strong>
@@ -104,7 +92,7 @@
                     </a>
                 @empty
                     <p class="empty-text">
-                        評価した書籍はありません。
+                        4点以上の評価書籍はありません。
                     </p>
                 @endforelse
             </div>
@@ -112,47 +100,35 @@
     </div>
 
     <section class="panel">
-        <div class="panel-heading">
-            <h2 class="panel-title">レビュー評価書籍 TOP5</h2>
+        <h2 class="panel-title">ジャンル別評価傾向 TOP5</h2>
 
-            <span class="book-meta">
-                投稿レビュー：{{ $reviewCount }}件
-            </span>
+        <div class="genre-ranking">
+            @forelse ($genreRatingTrends as $index => $trend)
+                <a
+                    class="genre-rank-row"
+                    href="{{ route('genres.show', $trend['genre']) }}"
+                >
+                    <span class="genre-rank-number">
+                        {{ $index + 1 }}
+                    </span>
+
+                    <div class="genre-rank-content">
+                        <div class="genre-rank-label">
+                            <span>{{ $trend['genre']->name }}</span>
+                            <span>
+                                平均 {{ number_format(
+                                    $trend['average_rating'],
+                                    1
+                                ) }}点（{{ $trend['count'] }}件）
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            @empty
+                <p class="empty-text">
+                    集計できるジャンルはありません。
+                </p>
+            @endforelse
         </div>
-
-        @if ($highRatedReviews->isNotEmpty())
-            <div class="report-book-grid">
-                @foreach ($highRatedReviews as $review)
-                    <article class="report-book-card">
-                        <div class="report-book-rank">
-                            {{ $loop->iteration }}
-                        </div>
-
-                        <div>
-                            <h3>
-                                <a href="{{ route(
-                                    'books.show',
-                                    $review->book
-                                ) }}">
-                                    {{ $review->book->title }}
-                                </a>
-                            </h3>
-
-                            <p class="book-meta">
-                                {{ $review->book->author }}
-                            </p>
-                        </div>
-
-                        <strong class="rating">
-                            ★ {{ number_format($review->rating, 1) }}
-                        </strong>
-                    </article>
-                @endforeach
-            </div>
-        @else
-            <p class="empty-text">
-                評価した書籍はありません。
-            </p>
-        @endif
     </section>
 @endsection

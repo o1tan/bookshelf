@@ -275,4 +275,49 @@ class BookApiTest extends TestCase
             'user_id' => $user->id,
         ]);
     }
+
+    public function test_book_index_can_search_by_keyword_and_filter_by_genre(): void
+    {
+        $genre = Genre::factory()->create();
+        $otherGenre = Genre::factory()->create();
+
+        $titleMatchedBook = Book::factory()->create([
+            'title' => 'Laravel API入門',
+            'author' => '山田太郎',
+        ]);
+
+        $authorMatchedBook = Book::factory()->create([
+            'title' => 'PHP実践ガイド',
+            'author' => 'Laravel研究会',
+        ]);
+
+        $outsideGenreBook = Book::factory()->create([
+            'title' => 'Laravel設計入門',
+            'author' => '鈴木花子',
+        ]);
+
+        $titleMatchedBook->genres()->attach($genre);
+        $authorMatchedBook->genres()->attach($genre);
+        $outsideGenreBook->genres()->attach($otherGenre);
+
+        $response = $this->getJson(
+            "/api/v1/books?keyword=Laravel&genre={$genre->id}"
+        );
+
+        $response->assertOk()
+            ->assertJsonCount(2, 'data');
+
+        $bookIds = collect($response->json('data'))
+            ->pluck('id')
+            ->sort()
+            ->values()
+            ->all();
+
+        $expectedIds = collect([
+            $titleMatchedBook->id,
+            $authorMatchedBook->id,
+        ])->sort()->values()->all();
+
+        $this->assertSame($expectedIds, $bookIds);
+    }
 }
