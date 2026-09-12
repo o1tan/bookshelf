@@ -16,6 +16,11 @@ class Kernel extends ConsoleKernel
             ->command('reading-plans:process')
             ->dailyAt('09:00')
             ->withoutOverlapping();
+
+        $schedule
+            ->command('reading-plans:send-reminders')
+            ->everyMinute()
+            ->withoutOverlapping();
     }
 
     /**
