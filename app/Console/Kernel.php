@@ -14,7 +14,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule
             ->command('reading-plans:process')
-            ->dailyAt('09:00')
+            ->everyMinute()
             ->withoutOverlapping();
     }
 

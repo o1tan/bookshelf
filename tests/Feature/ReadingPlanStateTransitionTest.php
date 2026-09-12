@@ -61,4 +61,29 @@ class ReadingPlanStateTransitionTest extends TestCase
             'reminded_at' => null,
         ]);
     }
+
+    public function test_user_can_create_new_plan_after_previous_plan_completed(): void
+    {
+        $user = User::factory()->create();
+        $book = Book::factory()->create();
+
+        ReadingPlan::factory()->create([
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+            'status' => ReadingPlan::STATUS_COMPLETED,
+            'completed_at' => now(),
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->post('/reading-plans', [
+                'book_id' => $book->id,
+                'deadline' => now()->addDays(7)->format('Y-m-d'),
+                'status' => ReadingPlan::STATUS_NOT_STARTED,
+                'reminder_at' => null,
+            ])
+            ->assertRedirect('/reading-plans');
+
+        $this->assertDatabaseCount('reading_plans', 2);
+    }
 }
